@@ -3,7 +3,7 @@ ssids:
   - Tsinghua-5G
 
 # https://usereg.tsinghua.edu.cn/help.htm
-billings:
+billing_types:
   student:
     max_online_num: 3
     base: 0
@@ -53,12 +53,12 @@ actions:
                 n = Number(matches[1]);
 
             switch (n) {
-                case 2531: throw Error("unauthorized.username");
-                case 2553: throw Error("unauthorized.password");
+                case 2531:
+                case 2553: throw "unauthorized";
                 case 2616:
                 case 3001:
-                case 3004: throw Error("arrears");
-                default: throw Error("unknown");
+                case 3004: throw "arrears";
+                default: throw "unknown";
             }
         }
 
@@ -75,73 +75,71 @@ actions:
         } else {
             let info = resp.split(",");
 
-            vars.status = "onlisne"
+            vars.status = "online"
             vars.online_username = info[0];
             vars.start_time = new Date(Number(info[1]) * 1000);
             vars.usage = Number(info[3]);
         }
 
   # Expected vars:
-  # - balance (*)
-  # - billing
   # - name
+  # - billing_type
+  # - balance
   # - usage
   # - custom_max_online_num
-  # - sessions
-  #   - ip (*)
-  #   - id
-  #   - start_time
-  #   - usage
-  #   - mac
-  #   - device
+  # - ips (*)
+  # - ids
+  # - start_times
+  # - usages
+  # - macs
+  # - devices
   profile:
     - method: POST
       url: http://usereg.tsinghua.edu.cn/do.php
       params:
         action: login
         user_login_name: "{username}"
-        user_password: "{password.md5}"
+        user_password: "{password_md5}"
       script: |
         if (resp != "ok") {
             switch (resp) {
-                case "用户不存在": throw Error("unauthorized.username");
-                case "密码错误": throw Error("unauthorized.password");
-                default: throw Error("unknown");
+                case "用户不存在":
+                case "密码错误": throw "unauthorized";
+                default: throw "unknown";
             }
         }
 
     - url: http://usereg.tsinghua.edu.cn/user_info.php
       vars:
-        balance: number(substring-before((//td[@class="maintd"])[34], "元"))
-        billing: (//td[@class="maintd"])[4]
+        balance: (//td[@class="maintd"])[34]
+        billing_type: (//td[@class="maintd"])[4]
         name: (//td[@class="maintd"])[6]
-        usage: number(substring-before((//td[@class="maintd"])[26], "("))
+        usage: (//td[@class="maintd"])[26]
       script: |
-        switch (vars.billing) {
-            case "在校生": vars.billing = "student"; break;
-            case "离校学生": vars.billing = "leaver"; break;
-            default: throw Error("unauthorized.billing");
+        vars.balance = Number(vars.balance.substring(0, vars.balance.indexOf("元")));
+        switch (vars.billing_type) {
+            case "在校生": vars.billing_type = "student"; break;
+            case "离校学生": vars.billing_type = "leaver"; break;
         }
+        vars.usage = Number(vars.usage.substring(0, vars.usage.indexOf("(")));
 
     - url: http://usereg.tsinghua.edu.cn/modify_online_num.php
       vars:
-        custom_max_online_num: number(//option[@selected]/@value)
-      script: |
-        if (resp == "您已经离校，无操作权限")
-            vars.custom_max_online_num = 0;
+        custom_max_online_num: //option[@selected]/@value
 
     - url: http://usereg.tsinghua.edu.cn/online_user_ipv4.php
       vars:
-        ids: //tr[position()>=2]//input/@value
-        ips: //tr[position()>=2]/td[2]
-        start_times: //tr[position()>=2]/td[3]
-        usages: //tr[position()>=2]/td[4]
-        macs: //tr[position()>=2]/td[8]
-        devices: //tr[position()>=2]/td[12]
+        ips[]: //tr[position()>=2]/td[2]
+        ids[]: //tr[position()>=2]//input/@value
+        start_times[]: //tr[position()>=2]/td[3]
+        usages[]: //tr[position()>=2]/td[4]
+        macs[]: //tr[position()>=2]/td[8]
+        devices[]: //tr[position()>=2]/td[12]
       script: |
         vars.sessions = [];
 
         for (let i = 0; i < vars.ips.length; i++) {
+
             let usage = vars.usages[i];
             let num = Number(usage.substr(0, usage.length - 1));
             let unit = usage[usage.length - 1].toUpperCase();
@@ -155,14 +153,8 @@ actions:
 
             usage = Math.round(num * ratio);
 
-            vars.sessions.push({
-                id: vars.ids[i],
-                ip: vars.ips[i],
-                start_time: new Date(vars.start_times[i].replace(' ', 'T') + '+08:00'),
-                usage: usage,
-                mac: macs[i],
-                device: devices[i]
-            });
+            vars.start_times[i] = new Date(vars.start_times[i].replace(' ', 'T') + '+08:00')
+            vars.usages[i] = usage;
         }
 
   # Extra vars:
@@ -173,13 +165,13 @@ actions:
       params:
         action: login
         user_login_name: "{username}"
-        user_password: "{password.md5}"
+        user_password: "{password_md5}"
       script: |
         if (resp != "ok") {
             switch (resp) {
-                case "用户不存在": throw Error("unauthorized.username");
-                case "密码错误": throw Error("unauthorized.password");
-                default: throw Error("unknown");
+                case "用户不存在":
+                case "密码错误": throw "unauthorized";
+                default: throw "unknown";
             }
         }
 
@@ -190,7 +182,7 @@ actions:
         user_max_online_num: "{new_value}"
       script: |
         if (resp != "联网数已修改")
-            throw Error("unknown");
+            throw "unknown";
 
   # Extra vars:
   # - ip
@@ -200,13 +192,13 @@ actions:
       params:
         action: login
         user_login_name: "{username}"
-        user_password: "{password.md5}"
+        user_password: "{password_md5}"
       script: |
         if (resp != "ok") {
             switch (resp) {
-                case "用户不存在": throw Error("unauthorized.username");
-                case "密码错误": throw Error("unauthorized.password");
-                default: throw Error("unknown");
+                case "用户不存在":
+                case "密码错误": throw "unauthorized";
+                default: throw "unknown";
             }
         }
 
@@ -221,7 +213,7 @@ actions:
         drop: "0"
       script: |
         if (resp != "上线请求已发送")
-            throw Error("unknown");
+            throw "unknown";
 
   # Extra vars:
   # - ip
@@ -232,13 +224,13 @@ actions:
       params:
         action: login
         user_login_name: "{username}"
-        user_password: "{password.md5}"
+        user_password: "{password_md5}"
       script: |
         if (resp != "ok") {
             switch (resp) {
-                case "用户不存在": throw Error("unauthorized.username");
-                case "密码错误": throw Error("unauthorized.password");
-                default: throw Error("unknown");
+                case "用户不存在":
+                case "密码错误": throw "unauthorized";
+                default: throw "unknown";
             }
         }
 
@@ -249,7 +241,7 @@ actions:
         user_ip: "{id},"
       script: |
         if (resp != "下线请求已发送")
-            throw Error("unknown");
+            throw "unknown";
 
   # Extra vars:
   # - start_time.year
@@ -260,27 +252,26 @@ actions:
   # - end_time.day
   #
   # Expected vars:
-  # - sessions
-  #   - ip (*)
-  #   - start_time (*)
-  #   - end_time (*)
-  #   - usage
-  #   - cost
-  #   - mac
-  #   - device
+  # - ips (*)
+  # - start_times (*)
+  # - end_times (*)
+  # - usages
+  # - costs
+  # - macs
+  # - devices
   history:
     - method: POST
       url: http://usereg.tsinghua.edu.cn/do.php
       params:
         action: login
         user_login_name: "{username}"
-        user_password: "{password.md5}"
+        user_password: "{password_md5}"
       script: |
         if (resp != "ok") {
             switch (resp) {
-                case "用户不存在": throw Error("unauthorized.username");
-                case "密码错误": throw Error("unauthorized.password");
-                default: throw Error("unknown");
+                case "用户不存在":
+                case "密码错误": throw "unauthorized";
+                default: throw "unknown";
             }
         }
 
@@ -291,13 +282,13 @@ actions:
         end_time: "{end_time.year}-{start_time.month}-{start_time.day}"
         offset: "1000000000"
       vars:
-        ips: //tr[position()>=2]/td[2]
-        start_times: //tr[position()>=2]/td[3]
-        end_times: //tr[position()>=2]/td[4]
-        usages: //tr[position()>=2]/td[6]
-        costs: //tr[position()>=2]/td[8]
-        macs: //tr[position()>=2]/td[10]
-        devices: //tr[position()>=2]/comment()[last()]
+        ips[]: //tr[position()>=2]/td[2]
+        start_times[]: //tr[position()>=2]/td[3]
+        end_times[]: //tr[position()>=2]/td[4]
+        usages[]: //tr[position()>=2]/td[6]
+        costs[]: //tr[position()>=2]/td[8]
+        macs[]: //tr[position()>=2]/td[10]
+        devices[]: //tr[position()>=2]/comment()[last()]
       script: |
         vars.sessions = [];
 
@@ -315,15 +306,10 @@ actions:
 
             usage = Math.round(num * ratio);
 
-            vars.sessions.push({
-                ip: vars.ips[i],
-                start_time: new Date(vars.start_times[i].replace(' ', 'T') + '+08:00'),
-                end_time: new Date(vars.end_times[i].replace(' ', 'T') + '+08:00'),
-                usage: usage,
-                cost: Number(vars.costs[i]),
-                mac: macs[i],
-                device: devices[i]
-            });
+            vars.start_times[i] = new Date(vars.start_times[i].replace(' ', 'T') + '+08:00')
+            vars.end_times[i] = new Date(vars.end_times[i].replace(' ', 'T') + '+08:00')
+            vars.usages[i] = usage;
+            vars.costs[i] = Number(vars.costs[i]);
         }
 
   logout:
@@ -333,6 +319,4 @@ actions:
         action: logout
       script: |
         if (resp != "Logout is successful." && resp != "You are not online.")  # TODO: Confirm.
-            throw Error("unknown");
-            }
-        }
+            throw "unknown";
