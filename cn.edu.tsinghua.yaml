@@ -3,7 +3,7 @@ ssids:
   - Tsinghua-5G
 
 # https://usereg.tsinghua.edu.cn/help.htm
-billing_types:
+billing_groups:
   student:
     max_online_num: 3
     base: 0
@@ -83,7 +83,7 @@ actions:
 
   # Expected vars:
   # - name
-  # - billing_type
+  # - billing_group_name
   # - balance
   # - usage
   # - custom_max_online_num
@@ -112,14 +112,14 @@ actions:
     - url: http://usereg.tsinghua.edu.cn/user_info.php
       vars:
         balance: (//td[@class="maintd"])[34]
-        billing_type: (//td[@class="maintd"])[4]
+        billing_group_name: (//td[@class="maintd"])[4]
         name: (//td[@class="maintd"])[6]
         usage: (//td[@class="maintd"])[26]
       script: |
         vars.balance = Number(vars.balance.substring(0, vars.balance.indexOf("元")));
-        switch (vars.billing_type) {
-            case "在校生": vars.billing_type = "student"; break;
-            case "离校学生": vars.billing_type = "leaver"; break;
+        switch (vars.billing_group_name) {
+            case "在校生": vars.billing_group_name = "student"; break;
+            case "离校学生": vars.billing_group_name = "leaver"; break;
         }
         vars.usage = Number(vars.usage.substring(0, vars.usage.indexOf("(")));
 
