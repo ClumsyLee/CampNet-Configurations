@@ -38,7 +38,7 @@ billing_groups:
 actions:
   login:
     - method: POST
-      url: http://net.tsinghua.edu.cn/do_login.php
+      url: https://net.tsinghua.edu.cn/do_login.php
       params:
         action: login
         username: "{username}"
@@ -68,7 +68,7 @@ actions:
   # - start_time
   # - usage
   status:
-    - url: http://net.tsinghua.edu.cn/rad_user_info.php
+    - url: https://net.tsinghua.edu.cn/rad_user_info.php
       script: |
         if (!resp) {
             vars.status = "offline"
@@ -95,7 +95,7 @@ actions:
   # - devices
   profile:
     - method: POST
-      url: http://usereg.tsinghua.edu.cn/do.php
+      url: https://usereg.tsinghua.edu.cn/do.php
       params:
         action: login
         user_login_name: "{username}"
@@ -109,7 +109,7 @@ actions:
             }
         }
 
-    - url: http://usereg.tsinghua.edu.cn/user_info.php
+    - url: https://usereg.tsinghua.edu.cn/user_info.php
       vars:
         balance: (//td[@class="maintd"])[34]
         billing_group_name: (//td[@class="maintd"])[4]
@@ -123,11 +123,11 @@ actions:
         }
         vars.usage = Number(vars.usage.substring(0, vars.usage.indexOf("(")));
 
-    - url: http://usereg.tsinghua.edu.cn/modify_online_num.php
+    - url: https://usereg.tsinghua.edu.cn/modify_online_num.php
       vars:
         custom_max_online_num: //option[@selected]/@value
 
-    - url: http://usereg.tsinghua.edu.cn/online_user_ipv4.php
+    - url: https://usereg.tsinghua.edu.cn/online_user_ipv4.php
       vars:
         ips[]: //tr[position()>=2]/td[2]
         ids[]: //tr[position()>=2]//input/@value
@@ -161,7 +161,7 @@ actions:
   # - new_value
   modify_custom_max_online_num:
     - method: POST
-      url: http://usereg.tsinghua.edu.cn/do.php
+      url: https://usereg.tsinghua.edu.cn/do.php
       params:
         action: login
         user_login_name: "{username}"
@@ -176,7 +176,7 @@ actions:
         }
 
     - method: POST
-      url: http://usereg.tsinghua.edu.cn/modify_online_num.php
+      url: https://usereg.tsinghua.edu.cn/modify_online_num.php
       params:
         action: mod
         user_max_online_num: "{new_value}"
@@ -188,7 +188,7 @@ actions:
   # - ip
   login_ip:
     - method: POST
-      url: http://usereg.tsinghua.edu.cn/do.php
+      url: https://usereg.tsinghua.edu.cn/do.php
       params:
         action: login
         user_login_name: "{username}"
@@ -203,7 +203,7 @@ actions:
         }
 
     - method: POST
-      url: http://usereg.tsinghua.edu.cn/ip_login.php
+      url: https://usereg.tsinghua.edu.cn/ip_login.php
       params:
         n: "100"
         is_pad: "1"
@@ -220,7 +220,7 @@ actions:
   # - id
   logout_session:
     - method: POST
-      url: http://usereg.tsinghua.edu.cn/do.php
+      url: https://usereg.tsinghua.edu.cn/do.php
       params:
         action: login
         user_login_name: "{username}"
@@ -235,7 +235,7 @@ actions:
         }
 
     - method: POST
-      url: http://usereg.tsinghua.edu.cn/online_user_ipv4.php
+      url: https://usereg.tsinghua.edu.cn/online_user_ipv4.php
       params:
         action: drops
         user_ip: "{id},"
@@ -261,7 +261,7 @@ actions:
   # - devices
   history:
     - method: POST
-      url: http://usereg.tsinghua.edu.cn/do.php
+      url: https://usereg.tsinghua.edu.cn/do.php
       params:
         action: login
         user_login_name: "{username}"
@@ -275,7 +275,7 @@ actions:
             }
         }
 
-    - url: http://usereg.tsinghua.edu.cn/user_detail_list.php
+    - url: https://usereg.tsinghua.edu.cn/user_detail_list.php
       params:
         action: query
         start_time: "{start_time.year}-{start_time.month}-{start_time.day}"
@@ -314,7 +314,7 @@ actions:
 
   logout:
     - method: POST
-      url: http://net.tsinghua.edu.cn/do_login.php
+      url: https://net.tsinghua.edu.cn/do_login.php
       params:
         action: logout
       script: |
