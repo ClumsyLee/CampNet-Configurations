@@ -34,7 +34,7 @@ billing_groups:
 # Default vars:
 # - username
 # - password
-# - password.md5
+# - password_md5
 actions:
   login:
     - method: POST
@@ -42,7 +42,7 @@ actions:
       params:
         action: login
         username: "{username}"
-        password: "{MD5_HEX}{password.md5}"
+        password: "{MD5_HEX}{password_md5}"
         ac_id: "1"
       script: |
         if (resp != "Login is successful." && resp != "IP has been online, please logout.") {
