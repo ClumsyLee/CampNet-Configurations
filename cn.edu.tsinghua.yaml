@@ -2,34 +2,24 @@ ssids:
   - Tsinghua
   - Tsinghua-5G
 
+decimal_units: true
+
 # https://usereg.tsinghua.edu.cn/help.htm
 billing_groups:
   student:
-    max_online_num: 3
-    base: 0
-    cycle: month
+    base_fee: 0
     steps:
-      - [20, 1]
-      - [30, 2]
-      - [40, 3]
-      - [50, 5]
+      - [20000000000, 0.000000001]
+      - [30000000000, 0.000000002]
+      - [40000000000, 0.000000003]
+      - [50000000000, 0.000000005]
   staff:
-    max_online_num: 3
-    base: 12
-    cycle: month
+    base_fee: 12
     steps:
-      - [20, 1]
-      - [30, 2]
-      - [40, 3]
-      - [50, 5]
-  temporary:
-    max_online_num: 1
-    base: 10
-    cycle: day
-    steps:
-      - [2, 5]
-  leaver:
-    max_online_num: 0
+      - [20000000000, 0.000000001]
+      - [30000000000, 0.000000002]
+      - [40000000000, 0.000000003]
+      - [50000000000, 0.000000005]
 
 # Default vars:
 # - username
@@ -44,6 +34,7 @@ actions:
         username: "{username}"
         password: "{MD5_HEX}{password_md5}"
         ac_id: "1"
+      offcampus_if_failed: true
       script: |
         if (resp != "Login is successful." && resp != "IP has been online, please logout.") {
             let matches = /E([\d]+)/.exec(resp);
@@ -69,6 +60,7 @@ actions:
   # - usage
   status:
     - url: https://net.tsinghua.edu.cn/rad_user_info.php
+      offcampus_if_failed: true
       script: |
         if (!resp) {
             vars.status = "offline"
@@ -86,13 +78,13 @@ actions:
   # - billing_group_name
   # - balance
   # - usage
-  # - custom_max_online_num
-  # - ips (*)
-  # - ids
-  # - start_times
-  # - usages
-  # - macs
-  # - devices
+  # - sessions
+  #  - ip (*)
+  #  - id
+  #  - start_time
+  #  - usage
+  #  - mac
+  #  - device
   profile:
     - method: POST
       url: https://usereg.tsinghua.edu.cn/do.php
@@ -100,6 +92,7 @@ actions:
         action: login
         user_login_name: "{username}"
         user_password: "{password_md5}"
+      offcampus_if_failed: true
       script: |
         if (resp != "ok") {
             switch (resp) {
@@ -118,14 +111,10 @@ actions:
       script: |
         vars.balance = Number(vars.balance.substring(0, vars.balance.indexOf("元")));
         switch (vars.billing_group_name) {
-            case "在校生": vars.billing_group_name = "student"; break;
-            case "离校学生": vars.billing_group_name = "leaver"; break;
+            case "在校生":
+            case "离校学生": vars.billing_group_name = "student"; break;
         }
         vars.usage = Number(vars.usage.substring(0, vars.usage.indexOf("(")));
-
-    - url: https://usereg.tsinghua.edu.cn/modify_online_num.php
-      vars:
-        custom_max_online_num: //option[@selected]/@value
 
     - url: https://usereg.tsinghua.edu.cn/online_user_ipv4.php
       vars:
@@ -146,43 +135,21 @@ actions:
 
             let ratio = 1;
             switch (unit) {
-              case 'K': ratio = 1e3; break;  // TODO: Confirm.
-              case 'M': ratio = 1e6; break;
-              case 'G': ratio = 1e9; break;
+                case 'K': ratio = 1e3; break;  // TODO: Confirm.
+                case 'M': ratio = 1e6; break;
+                case 'G': ratio = 1e9; break;
             }
-
             usage = Math.round(num * ratio);
 
-            vars.start_times[i] = new Date(vars.start_times[i].replace(' ', 'T') + '+08:00')
-            vars.usages[i] = usage;
+            vars.sessions.push({
+                ip: vars.ips[i],
+                id: vars.ids[i],
+                start_time: new Date(vars.start_times[i].replace(' ', 'T') + '+08:00'),
+                usage: usage,
+                mac: vars.macs[i],
+                device: vars.devices[i]
+            });
         }
-
-  # Extra vars:
-  # - new_value
-  modify_custom_max_online_num:
-    - method: POST
-      url: https://usereg.tsinghua.edu.cn/do.php
-      params:
-        action: login
-        user_login_name: "{username}"
-        user_password: "{password_md5}"
-      script: |
-        if (resp != "ok") {
-            switch (resp) {
-                case "用户不存在":
-                case "密码错误": throw "unauthorized";
-                default: throw "unknown";
-            }
-        }
-
-    - method: POST
-      url: https://usereg.tsinghua.edu.cn/modify_online_num.php
-      params:
-        action: mod
-        user_max_online_num: "{new_value}"
-      script: |
-        if (resp != "联网数已修改")
-            throw "unknown";
 
   # Extra vars:
   # - ip
@@ -193,6 +160,7 @@ actions:
         action: login
         user_login_name: "{username}"
         user_password: "{password_md5}"
+      offcampus_if_failed: true
       script: |
         if (resp != "ok") {
             switch (resp) {
@@ -225,6 +193,7 @@ actions:
         action: login
         user_login_name: "{username}"
         user_password: "{password_md5}"
+      offcampus_if_failed: true
       script: |
         if (resp != "ok") {
             switch (resp) {
@@ -243,22 +212,8 @@ actions:
         if (resp != "下线请求已发送")
             throw "unknown";
 
-  # Extra vars:
-  # - start_time.year
-  # - start_time.month
-  # - start_time.day
-  # - end_time.year
-  # - end_time.month
-  # - end_time.day
-  #
   # Expected vars:
-  # - ips (*)
-  # - start_times (*)
-  # - end_times (*)
-  # - usages
-  # - costs
-  # - macs
-  # - devices
+  # - usage_sums
   history:
     - method: POST
       url: https://usereg.tsinghua.edu.cn/do.php
@@ -266,6 +221,7 @@ actions:
         action: login
         user_login_name: "{username}"
         user_password: "{password_md5}"
+      offcampus_if_failed: true
       script: |
         if (resp != "ok") {
             switch (resp) {
@@ -275,41 +231,51 @@ actions:
             }
         }
 
+        let today = new Date();
+        vars.year = today.getFullYear();
+        vars.month = today.getMonth() + 1;
+        vars.days = today.getDate();
+
     - url: https://usereg.tsinghua.edu.cn/user_detail_list.php
       params:
         action: query
-        start_time: "{start_time.year}-{start_time.month}-{start_time.day}"
-        end_time: "{end_time.year}-{start_time.month}-{start_time.day}"
-        offset: "1000000000"
+        start_time: "{year}-{month}-1"
+        end_time: "{year}-{month}-{days}"
+        offset: "100000"
+        order: user_login_time
       vars:
-        ips[]: //tr[position()>=2]/td[2]
         start_times[]: //tr[position()>=2]/td[3]
-        end_times[]: //tr[position()>=2]/td[4]
         usages[]: //tr[position()>=2]/td[6]
-        costs[]: //tr[position()>=2]/td[8]
-        macs[]: //tr[position()>=2]/td[10]
-        devices[]: //tr[position()>=2]/comment()[last()]
       script: |
-        vars.sessions = [];
+        vars.usage_sums = [];
+        let day_now = 1;
+        let sum_now = 0;
 
-        for (let i = 0; i < vars.ips.length; i++) {
+        for (let i = 0; i < vars.start_times.length; i++) {
+            let start_time = new Date(vars.start_times[i].replace(' ', 'T') + '+08:00');
+            if (start_time.getFullYear() != vars.year || start_time.getMonth() + 1 != vars.month) {
+                continue
+            }
+
             let usage = vars.usages[i];
             let num = Number(usage.substr(0, usage.length - 1));
             let unit = usage[usage.length - 1].toUpperCase();
 
             let ratio = 1;
             switch (unit) {
-              case 'K': ratio = 1e3; break;  // TODO: Confirm.
-              case 'M': ratio = 1e6; break;
-              case 'G': ratio = 1e9; break;
+                case 'K': ratio = 1e3; break;  // TODO: Confirm.
+                case 'M': ratio = 1e6; break;
+                case 'G': ratio = 1e9; break;
             }
-
             usage = Math.round(num * ratio);
 
-            vars.start_times[i] = new Date(vars.start_times[i].replace(' ', 'T') + '+08:00')
-            vars.end_times[i] = new Date(vars.end_times[i].replace(' ', 'T') + '+08:00')
-            vars.usages[i] = usage;
-            vars.costs[i] = Number(vars.costs[i]);
+            for (let day = start_time.getDate(); day_now < day; day_now++) {
+                vars.usage_sums.push(sum_now);
+            }
+            sum_now += usage;
+        }
+        for (; day_now <= vars.days; day_now++) {
+            vars.usage_sums.push(sum_now);
         }
 
   logout:
@@ -317,6 +283,7 @@ actions:
       url: https://net.tsinghua.edu.cn/do_login.php
       params:
         action: logout
+      offcampus_if_failed: true
       script: |
-        if (resp != "Logout is successful." && resp != "You are not online.")  # TODO: Confirm.
+        if (resp != "Logout is successful." && resp != "You are not online.")  // TODO: Confirm.
             throw "unknown";
