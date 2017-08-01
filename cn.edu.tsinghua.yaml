@@ -79,12 +79,12 @@ actions:
   # - balance
   # - usage
   # - sessions
-  #  - ip (*)
-  #  - id
-  #  - start_time
-  #  - usage
-  #  - mac
-  #  - device
+  #   - ip (*)
+  #   - id
+  #   - start_time
+  #   - usage
+  #   - mac
+  #   - device
   profile:
     - method: POST
       url: https://usereg.tsinghua.edu.cn/do.php
