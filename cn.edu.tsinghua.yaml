@@ -49,7 +49,7 @@ actions:
                 case 2616:
                 case 3001:
                 case 3004: throw "arrears";
-                default: throw "unknown";
+                default: throw "unknown: " + resp;
             }
         }
 
@@ -98,7 +98,7 @@ actions:
             switch (resp) {
                 case "用户不存在":
                 case "密码错误": throw "unauthorized";
-                default: throw "unknown";
+                default: throw "unknown: " + resp;
             }
         }
 
@@ -166,7 +166,7 @@ actions:
             switch (resp) {
                 case "用户不存在":
                 case "密码错误": throw "unauthorized";
-                default: throw "unknown";
+                default: throw "unknown: " + resp;
             }
         }
 
@@ -181,7 +181,7 @@ actions:
         drop: "0"
       script: |
         if (resp != "上线请求已发送")
-            throw "unknown";
+            throw "unknown: " + resp;
 
   # Extra vars:
   # - ip
@@ -199,7 +199,7 @@ actions:
             switch (resp) {
                 case "用户不存在":
                 case "密码错误": throw "unauthorized";
-                default: throw "unknown";
+                default: throw "unknown: " + resp;
             }
         }
 
@@ -210,7 +210,7 @@ actions:
         user_ip: "{id},"
       script: |
         if (resp != "下线请求已发送")
-            throw "unknown";
+            throw "unknown: " + resp;
 
   # Expected vars:
   # - usage_sums
@@ -227,7 +227,7 @@ actions:
             switch (resp) {
                 case "用户不存在":
                 case "密码错误": throw "unauthorized";
-                default: throw "unknown";
+                default: throw "unknown: " + resp;
             }
         }
 
@@ -286,4 +286,4 @@ actions:
       offcampus_if_failed: true
       script: |
         if (resp != "Logout is successful." && resp != "You are not online.")  // TODO: Confirm.
-            throw "unknown";
+            throw "unknown: " + resp;
