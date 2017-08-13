@@ -252,8 +252,8 @@ actions:
         let sum_now = 0;
 
         for (let i = 0; i < vars.start_times.length; i++) {
-            let start_time = new Date(vars.start_times[i].replace(' ', 'T') + '+08:00');
-            if (start_time.getFullYear() != vars.year || start_time.getMonth() + 1 != vars.month) {
+            let start_time = new Date(vars.start_times[i].replace(' ', 'T'));  // As UTC for convenience.
+            if (start_time.getUTCFullYear() != vars.year || start_time.getUTCMonth() + 1 != vars.month) {
                 continue
             }
 
@@ -269,7 +269,7 @@ actions:
             }
             usage = Math.round(num * ratio);
 
-            for (let day = start_time.getDate(); day_now < day; day_now++) {
+            for (let day = start_time.getUTCDate(); day_now < day; day_now++) {
                 vars.usage_sums.push(sum_now);
             }
             sum_now += usage;
