@@ -9,17 +9,17 @@ billing_groups:
   student:
     base_fee: 0
     steps:
-      - [20000000000, 0.000000001]
-      - [30000000000, 0.000000002]
-      - [40000000000, 0.000000003]
-      - [50000000000, 0.000000005]
+      - [20000, 0.001]
+      - [30000, 0.002]
+      - [40000, 0.003]
+      - [50000, 0.005]
   staff:
     base_fee: 12
     steps:
-      - [20000000000, 0.000000001]
-      - [30000000000, 0.000000002]
-      - [40000000000, 0.000000003]
-      - [50000000000, 0.000000005]
+      - [20000, 0.001]
+      - [30000, 0.002]
+      - [40000, 0.003]
+      - [50000, 0.005]
 
 # Default vars:
 # - username
@@ -37,9 +37,9 @@ actions:
       offcampus_if_failed: true
       script: |
         if (resp != "Login is successful." && resp != "IP has been online, please logout.") {
-            let matches = /E([\d]+)/.exec(resp);
+            var matches = /E([\d]+)/.exec(resp);
 
-            let n = NaN;
+            var n = NaN;
             if (matches)
                 n = Number(matches[1]);
 
@@ -65,7 +65,7 @@ actions:
         if (!resp) {
             vars.status = "offline"
         } else {
-            let info = resp.split(",");
+            var info = resp.split(",");
 
             vars.status = "online"
             vars.online_username = info[0];
@@ -127,13 +127,13 @@ actions:
       script: |
         vars.sessions = [];
 
-        for (let i = 0; i < vars.ips.length; i++) {
+        for (var i = 0; i < vars.ips.length; i++) {
 
-            let usage = vars.usages[i];
-            let num = Number(usage.substr(0, usage.length - 1));
-            let unit = usage[usage.length - 1].toUpperCase();
+            var usage = vars.usages[i];
+            var num = Number(usage.substr(0, usage.length - 1));
+            var unit = usage[usage.length - 1].toUpperCase();
 
-            let ratio = 1;
+            var ratio = 1;
             switch (unit) {
                 case 'K': ratio = 1e3; break;  // TODO: Confirm.
                 case 'M': ratio = 1e6; break;
@@ -231,7 +231,7 @@ actions:
             }
         }
 
-        let today = new Date();
+        var today = new Date();
         vars.year = today.getFullYear();
         vars.month = today.getMonth() + 1;
         vars.days = today.getDate();
@@ -248,20 +248,20 @@ actions:
         usages[]: //tr[position()>=2]/td[6]
       script: |
         vars.usage_sums = [];
-        let day_now = 1;
-        let sum_now = 0;
+        var day_now = 1;
+        var sum_now = 0;
 
-        for (let i = 0; i < vars.start_times.length; i++) {
-            let start_time = new Date(vars.start_times[i].replace(' ', 'T'));  // As UTC for convenience.
+        for (var i = 0; i < vars.start_times.length; i++) {
+            var start_time = new Date(vars.start_times[i].replace(' ', 'T'));  // As UTC for convenience.
             if (start_time.getUTCFullYear() != vars.year || start_time.getUTCMonth() + 1 != vars.month) {
                 continue
             }
 
-            let usage = vars.usages[i];
-            let num = Number(usage.substr(0, usage.length - 1));
-            let unit = usage[usage.length - 1].toUpperCase();
+            var usage = vars.usages[i];
+            var num = Number(usage.substr(0, usage.length - 1));
+            var unit = usage[usage.length - 1].toUpperCase();
 
-            let ratio = 1;
+            var ratio = 1;
             switch (unit) {
                 case 'K': ratio = 1e3; break;  // TODO: Confirm.
                 case 'M': ratio = 1e6; break;
@@ -269,7 +269,7 @@ actions:
             }
             usage = Math.round(num * ratio);
 
-            for (let day = start_time.getUTCDate(); day_now < day; day_now++) {
+            for (var day = start_time.getUTCDate(); day_now < day; day_now++) {
                 vars.usage_sums.push(sum_now);
             }
             sum_now += usage;
