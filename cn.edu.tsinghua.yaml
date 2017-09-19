@@ -39,7 +39,8 @@ actions:
 
             switch (n) {
                 case 2531:
-                case 2553: throw "unauthorized";
+                case 2553:
+                case 2606: throw "unauthorized";
                 case 2616:
                 case 3001:
                 case 3004: throw "arrears";
