@@ -175,7 +175,7 @@ actions:
         user_ip: "{ip}"
         drop: "0"
       script: |
-        if (resp != "上线请求已发送")
+        if (!resp.includes("上线请求已发送"))
             throw "unknown: " + resp;
 
   # Extra vars:
