@@ -1,6 +1,8 @@
 ssids:
   - Tsinghua
   - Tsinghua-5G
+  - Tsinghua-IPv4
+  - Tsinghua-IPv6
 
 decimal_units: true
 
