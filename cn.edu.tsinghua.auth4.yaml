@@ -217,8 +217,7 @@ actions:
   #   - mac
   #   - device
   profile:
-    - script: |
-      vars.password_md5 = md5(vars.password);
+    - script: vars.password_md5 = md5(vars.password);
     - method: POST
       url: https://usereg.tsinghua.edu.cn/do.php
       params:
@@ -469,8 +468,7 @@ actions:
   # Expected vars:
   # - usage_sums
   history:
-    - script: |
-      vars.password_md5 = md5(vars.password);
+    - script: vars.password_md5 = md5(vars.password);
     - method: POST
       url: https://usereg.tsinghua.edu.cn/do.php
       params:
