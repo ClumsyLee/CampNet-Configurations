@@ -167,7 +167,7 @@ actions:
       script: |
         var data = JSON.parse(resp.substring(9, resp.length - 1));
 
-        if (data.error != "ok") {
+        if (data.error != 'ok' && data.error != 'ip_already_online_error') {
             var matches = /E([\d]+)/.exec(data.ecode);
 
             var n = NaN;
@@ -432,7 +432,7 @@ actions:
       script: |
         var data = JSON.parse(resp.substring(9, resp.length - 1));
 
-        if (data.error != "ok") {
+        if (data.error != 'ok' && data.error != 'ip_already_online_error') {
             var matches = /E([\d]+)/.exec(data.ecode);
 
             var n = NaN;
