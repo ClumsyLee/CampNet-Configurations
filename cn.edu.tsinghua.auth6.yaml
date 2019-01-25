@@ -1,5 +1,5 @@
 ssids:
-  - Tsinghua-IPv4
+  - Tsinghua-IPv6
 
 decimal_units: true
 
@@ -19,7 +19,7 @@ billing_groups:
 # - password
 actions:
   login:
-    - url: https://auth4.tsinghua.edu.cn/cgi-bin/get_challenge
+    - url: https://auth6.tsinghua.edu.cn/cgi-bin/get_challenge
       params:
         username: "{username}"
         ip: ""
@@ -149,7 +149,7 @@ actions:
         vars.info = "{SRBX1}" + encode64(xEncode(JSON.stringify({ "username": vars.username, "password": vars.password, "ip": vars.ip, "acid": vars.ac_id, "enc_ver": "srun_bx1" }), token));
         vars.password_hmd5 = '{MD5}' + hmd5;
         vars.chksum = sha1(token + [vars.username, hmd5, vars.ac_id, vars.ip, vars.n, vars.type, vars.info].join(token));
-    - url: https://auth4.tsinghua.edu.cn/cgi-bin/srun_portal
+    - url: https://auth6.tsinghua.edu.cn/cgi-bin/srun_portal
       params:
         action: login
         ac_id: "{ac_id}"
@@ -190,7 +190,7 @@ actions:
   # - start_time
   # - usage
   status:
-    - url: https://auth4.tsinghua.edu.cn/rad_user_info.php
+    - url: https://auth6.tsinghua.edu.cn/rad_user_info.php
       offcampus_if_failed: true
       script: |
         if (!resp) {
@@ -287,7 +287,7 @@ actions:
   # Extra vars:
   # - ip
   login_ip:
-    - url: https://auth4.tsinghua.edu.cn/cgi-bin/get_challenge
+    - url: https://auth6.tsinghua.edu.cn/cgi-bin/get_challenge
       params:
         username: "{username}"
         ip: "{ip}"
@@ -416,7 +416,7 @@ actions:
         vars.info = "{SRBX1}" + encode64(xEncode(JSON.stringify({ "username": vars.username, "password": vars.password, "ip": vars.ip, "acid": vars.ac_id, "enc_ver": "srun_bx1" }), token));
         vars.password_hmd5 = '{MD5}' + hmd5;
         vars.chksum = sha1(token + [vars.username, hmd5, vars.ac_id, vars.ip, vars.n, vars.type, vars.info].join(token));
-    - url: https://auth4.tsinghua.edu.cn/cgi-bin/srun_portal
+    - url: https://auth6.tsinghua.edu.cn/cgi-bin/srun_portal
       params:
         action: login
         ac_id: "{ac_id}"
@@ -455,7 +455,7 @@ actions:
   # - ip
   # - id
   logout_session:
-    - url: https://auth4.tsinghua.edu.cn/cgi-bin/srun_portal
+    - url: https://auth6.tsinghua.edu.cn/cgi-bin/srun_portal
       params:
         action: logout
         ip: "{ip}"
@@ -535,7 +535,7 @@ actions:
         }
 
   logout:
-    - url: https://auth4.tsinghua.edu.cn/cgi-bin/srun_portal
+    - url: https://auth6.tsinghua.edu.cn/cgi-bin/srun_portal
       params:
         action: logout
         ip: ""

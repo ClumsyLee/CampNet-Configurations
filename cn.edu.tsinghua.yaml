@@ -18,9 +18,10 @@ billing_groups:
 # Default vars:
 # - username
 # - password
-# - password_md5
 actions:
   login:
+    - script: |
+      vars.password_md5 = md5(vars.password);
     - method: POST
       url: https://net.tsinghua.edu.cn/do_login.php
       params:
@@ -81,6 +82,8 @@ actions:
   #   - mac
   #   - device
   profile:
+    - script: |
+      vars.password_md5 = md5(vars.password);
     - method: POST
       url: https://usereg.tsinghua.edu.cn/do.php
       params:
@@ -149,6 +152,8 @@ actions:
   # Extra vars:
   # - ip
   login_ip:
+    - script: |
+      vars.password_md5 = md5(vars.password);
     - method: POST
       url: https://usereg.tsinghua.edu.cn/do.php
       params:
@@ -182,6 +187,8 @@ actions:
   # - ip
   # - id
   logout_session:
+    - script: |
+      vars.password_md5 = md5(vars.password);
     - method: POST
       url: https://usereg.tsinghua.edu.cn/do.php
       params:
@@ -210,6 +217,8 @@ actions:
   # Expected vars:
   # - usage_sums
   history:
+    - script: |
+      vars.password_md5 = md5(vars.password);
     - method: POST
       url: https://usereg.tsinghua.edu.cn/do.php
       params:
