@@ -1,0 +1,544 @@
+ssids:
+  - Tsinghua-IPv4
+
+decimal_units: true
+
+# https://usereg.tsinghua.edu.cn/help.htm
+billing_groups:
+  student:
+    base_fee: 0
+    steps:
+      - [25000, 0.002]
+  staff:
+    base_fee: 12
+    steps:
+      - [25000, 0.002]
+
+# Default vars:
+# - username
+# - password
+# - password_md5
+actions:
+  login:
+    - url: https://auth4.tsinghua.edu.cn/cgi-bin/get_challenge
+      params:
+        username: "{username}"
+        ip: ""
+        double_stack: "1"
+        callback: callback
+      offcampus_if_failed: true
+      script: |
+        var data = JSON.parse(resp.substring(9, resp.length - 1));
+        if (data.res != "ok")
+          throw "unknown: " + data.error;
+
+        var keyStr = "LVoJPiCN2R8G90yg" +
+                     "+hmFHuacZ1OWMnrs" +
+                     "STXkYpUq/3dlbfKw" +
+                     "v6xztjI7DeBE45QA" +
+                     "=";
+        function encode64(input) {
+           var output = "";
+           var chr1, chr2, chr3 = "";
+           var enc1, enc2, enc3, enc4 = "";
+           var i = 0;
+
+           do {
+              chr1 = input.charCodeAt(i++);
+              chr2 = input.charCodeAt(i++);
+              chr3 = input.charCodeAt(i++);
+
+              enc1 = chr1 >> 2;
+              enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+              enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+              enc4 = chr3 & 63;
+
+              if (isNaN(chr2)) {
+                 enc3 = enc4 = 64;
+              } else if (isNaN(chr3)) {
+                 enc4 = 64;
+              }
+
+              output = output +
+                 keyStr.charAt(enc1) +
+                 keyStr.charAt(enc2) +
+                 keyStr.charAt(enc3) +
+                 keyStr.charAt(enc4);
+              chr1 = chr2 = chr3 = "";
+              enc1 = enc2 = enc3 = enc4 = "";
+           } while (i < input.length);
+
+           return output;
+        }
+
+        function xEncode(str, key) {
+          if (str == "") {
+            return "";
+          }
+          var v = s(str, true),
+            k = s(key, false);
+          if (k.length < 4) {
+            k.length = 4;
+          }
+          var n = v.length - 1,
+            z = v[n],
+            y = v[0],
+            c = 0x86014019 | 0x183639A0,
+            m,
+            e,
+            p,
+            q = Math.floor(6 + 52 / (n + 1)),
+            d = 0;
+          while (0 < q--) {
+            d = d + c & (0x8CE0D9BF | 0x731F2640);
+            e = d >>> 2 & 3;
+            for (p = 0; p < n; p++) {
+              y = v[p + 1];
+              m = z >>> 5 ^ y << 2;
+              m += (y >>> 3 ^ z << 4) ^ (d ^ y);
+              m += k[(p & 3) ^ e] ^ z;
+              z = v[p] = v[p] + m & (0xEFB8D130 | 0x10472ECF);
+            }
+            y = v[0];
+            m = z >>> 5 ^ y << 2;
+            m += (y >>> 3 ^ z << 4) ^ (d ^ y);
+            m += k[(p & 3) ^ e] ^ z;
+            z = v[n] = v[n] + m & (0xBB390742 | 0x44C6F8BD);
+          }
+
+          function s(a, b) {
+            var c = a.length,
+              v = [];
+            for (var i = 0; i < c; i += 4) {
+              v[i >> 2] = a.charCodeAt(i) | a.charCodeAt(i + 1) << 8 | a.charCodeAt(i + 2) << 16 | a.charCodeAt(i + 3) << 24;
+            }
+            if (b) {
+              v[v.length] = c;
+            }
+            return v;
+          }
+
+          function l(a, b) {
+            var d = a.length,
+              c = (d - 1) << 2;
+            if (b) {
+              var m = a[d - 1];
+              if ((m < c - 3) || (m > c))
+                return null;
+              c = m;
+            }
+            for (var i = 0; i < d; i++) {
+              a[i] = String.fromCharCode(a[i] & 0xff, a[i] >>> 8 & 0xff, a[i] >>> 16 & 0xff, a[i] >>> 24 & 0xff);
+            }
+            if (b) {
+              return a.join('').substring(0, c);
+            } else {
+              return a.join('');
+            }
+          }
+
+          return l(v, false);
+        }
+
+        var token = data.challenge;
+        var hmd5 = "00000000000000000000000000000000";
+
+        vars.ac_id = "31";
+        vars.n = "200";
+        vars.type = "1";
+        vars.ip = "";
+        vars.info = "{SRBX1}" + encode64(xEncode(JSON.stringify({ "username": vars.username, "password": vars.password, "ip": vars.ip, "acid": vars.ac_id, "enc_ver": "srun_bx1" }), token));
+        vars.password_hmd5 = '{MD5}' + hmd5;
+        vars.chksum = sha1(token + [vars.username, hmd5, vars.ac_id, vars.ip, vars.n, vars.type, vars.info].join(token));
+    - url: https://auth4.tsinghua.edu.cn/cgi-bin/srun_portal
+      params:
+        action: login
+        ac_id: "{ac_id}"
+        n: "{n}"
+        type: "{type}"
+        ip: "{ip}"
+        double_stack: "1"
+        username: "{username}"
+        password: "{password_hmd5}"
+        info: "{info}"
+        chksum: "{chksum}"
+        callback: callback
+      offcampus_if_failed: true
+      script: |
+        var data = JSON.parse(resp.substring(9, resp.length - 1));
+
+        if (data.error != "ok") {
+            var matches = /E([\d]+)/.exec(data.ecode);
+
+            var n = NaN;
+            if (matches)
+                n = Number(matches[1]);
+
+            switch (n) {
+                case 2531:
+                case 2553:
+                case 2606: throw "unauthorized";
+                case 2616:
+                case 3001:
+                case 3004: throw "arrears";
+                default: throw "unknown: " + resp;
+            }
+        }
+
+  # Expected vars:
+  # - status (online | offline | offcampus) (*)
+  # - online_username
+  # - start_time
+  # - usage
+  status:
+    - url: https://auth4.tsinghua.edu.cn/rad_user_info.php
+      offcampus_if_failed: true
+      script: |
+        if (!resp) {
+            vars.status = "offline"
+        } else {
+            var info = resp.split(",");
+
+            vars.status = "online"
+            vars.online_username = info[0];
+            vars.start_time = new Date(Number(info[1]) * 1000);
+            vars.usage = Number(info[3]);
+        }
+
+  # Expected vars:
+  # - name
+  # - billing_group_name
+  # - balance
+  # - usage
+  # - sessions
+  #   - ip (*)
+  #   - id
+  #   - start_time
+  #   - usage
+  #   - mac
+  #   - device
+  profile:
+    - method: POST
+      url: https://usereg.tsinghua.edu.cn/do.php
+      params:
+        action: login
+        user_login_name: "{username}"
+        user_password: "{password_md5}"
+      offcampus_if_failed: true
+      script: |
+        if (resp != "ok") {
+            switch (resp) {
+                case "用户不存在":
+                case "密码错误": throw "unauthorized";
+                default: throw "unknown: " + resp;
+            }
+        }
+
+    - url: https://usereg.tsinghua.edu.cn/user_info.php
+      vars:
+        balance: (//td[@class="maintd"])[34]
+        billing_group_name: (//td[@class="maintd"])[4]
+        name: (//td[@class="maintd"])[6]
+        usage: (//td[@class="maintd"])[26]
+      script: |
+        vars.balance = Number(vars.balance.substring(0, vars.balance.indexOf("元")));
+        switch (vars.billing_group_name) {
+            case "在校生":
+            case "离校学生": vars.billing_group_name = "student"; break;
+        }
+        vars.usage = Number(vars.usage.substring(0, vars.usage.indexOf("(")));
+
+    - url: https://usereg.tsinghua.edu.cn/online_user_ipv4.php
+      vars:
+        ips[]: //tr[position()>=2]/td[2]
+        ids[]: //tr[position()>=2]//input/@value
+        start_times[]: //tr[position()>=2]/td[3]
+        usages[]: //tr[position()>=2]/td[4]
+        macs[]: //tr[position()>=2]/td[8]
+        devices[]: //tr[position()>=2]/td[12]
+      script: |
+        vars.sessions = [];
+
+        for (var i = 0; i < vars.ips.length; i++) {
+
+            var usage = vars.usages[i];
+            var num = Number(usage.substr(0, usage.length - 1));
+            var unit = usage[usage.length - 1].toUpperCase();
+
+            var ratio = 1;
+            switch (unit) {
+                case 'K': ratio = 1e3; break;  // TODO: Confirm.
+                case 'M': ratio = 1e6; break;
+                case 'G': ratio = 1e9; break;
+            }
+            usage = Math.round(num * ratio);
+
+            vars.sessions.push({
+                ip: vars.ips[i],
+                id: vars.ids[i],
+                start_time: new Date(vars.start_times[i].replace(' ', 'T') + '+08:00'),
+                usage: usage,
+                mac: vars.macs[i],
+                device: vars.devices[i]
+            });
+        }
+
+  # Extra vars:
+  # - ip
+  login_ip:
+    - url: https://auth4.tsinghua.edu.cn/cgi-bin/get_challenge
+      params:
+        username: "{username}"
+        ip: "{ip}"
+        double_stack: "1"
+        callback: callback
+      offcampus_if_failed: true
+      script: |
+        var data = JSON.parse(resp.substring(9, resp.length - 1));
+        if (data.res != "ok")
+          throw "unknown: " + data.error;
+
+        var keyStr = "LVoJPiCN2R8G90yg" +
+                     "+hmFHuacZ1OWMnrs" +
+                     "STXkYpUq/3dlbfKw" +
+                     "v6xztjI7DeBE45QA" +
+                     "=";
+        function encode64(input) {
+           var output = "";
+           var chr1, chr2, chr3 = "";
+           var enc1, enc2, enc3, enc4 = "";
+           var i = 0;
+
+           do {
+              chr1 = input.charCodeAt(i++);
+              chr2 = input.charCodeAt(i++);
+              chr3 = input.charCodeAt(i++);
+
+              enc1 = chr1 >> 2;
+              enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+              enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+              enc4 = chr3 & 63;
+
+              if (isNaN(chr2)) {
+                 enc3 = enc4 = 64;
+              } else if (isNaN(chr3)) {
+                 enc4 = 64;
+              }
+
+              output = output +
+                 keyStr.charAt(enc1) +
+                 keyStr.charAt(enc2) +
+                 keyStr.charAt(enc3) +
+                 keyStr.charAt(enc4);
+              chr1 = chr2 = chr3 = "";
+              enc1 = enc2 = enc3 = enc4 = "";
+           } while (i < input.length);
+
+           return output;
+        }
+
+        function xEncode(str, key) {
+          if (str == "") {
+            return "";
+          }
+          var v = s(str, true),
+            k = s(key, false);
+          if (k.length < 4) {
+            k.length = 4;
+          }
+          var n = v.length - 1,
+            z = v[n],
+            y = v[0],
+            c = 0x86014019 | 0x183639A0,
+            m,
+            e,
+            p,
+            q = Math.floor(6 + 52 / (n + 1)),
+            d = 0;
+          while (0 < q--) {
+            d = d + c & (0x8CE0D9BF | 0x731F2640);
+            e = d >>> 2 & 3;
+            for (p = 0; p < n; p++) {
+              y = v[p + 1];
+              m = z >>> 5 ^ y << 2;
+              m += (y >>> 3 ^ z << 4) ^ (d ^ y);
+              m += k[(p & 3) ^ e] ^ z;
+              z = v[p] = v[p] + m & (0xEFB8D130 | 0x10472ECF);
+            }
+            y = v[0];
+            m = z >>> 5 ^ y << 2;
+            m += (y >>> 3 ^ z << 4) ^ (d ^ y);
+            m += k[(p & 3) ^ e] ^ z;
+            z = v[n] = v[n] + m & (0xBB390742 | 0x44C6F8BD);
+          }
+
+          function s(a, b) {
+            var c = a.length,
+              v = [];
+            for (var i = 0; i < c; i += 4) {
+              v[i >> 2] = a.charCodeAt(i) | a.charCodeAt(i + 1) << 8 | a.charCodeAt(i + 2) << 16 | a.charCodeAt(i + 3) << 24;
+            }
+            if (b) {
+              v[v.length] = c;
+            }
+            return v;
+          }
+
+          function l(a, b) {
+            var d = a.length,
+              c = (d - 1) << 2;
+            if (b) {
+              var m = a[d - 1];
+              if ((m < c - 3) || (m > c))
+                return null;
+              c = m;
+            }
+            for (var i = 0; i < d; i++) {
+              a[i] = String.fromCharCode(a[i] & 0xff, a[i] >>> 8 & 0xff, a[i] >>> 16 & 0xff, a[i] >>> 24 & 0xff);
+            }
+            if (b) {
+              return a.join('').substring(0, c);
+            } else {
+              return a.join('');
+            }
+          }
+
+          return l(v, false);
+        }
+
+        var token = data.challenge;
+        var hmd5 = "00000000000000000000000000000000";
+
+        vars.ac_id = "31";
+        vars.n = "200";
+        vars.type = "1";
+        vars.info = "{SRBX1}" + encode64(xEncode(JSON.stringify({ "username": vars.username, "password": vars.password, "ip": vars.ip, "acid": vars.ac_id, "enc_ver": "srun_bx1" }), token));
+        vars.password_hmd5 = '{MD5}' + hmd5;
+        vars.chksum = sha1(token + [vars.username, hmd5, vars.ac_id, vars.ip, vars.n, vars.type, vars.info].join(token));
+    - url: https://auth4.tsinghua.edu.cn/cgi-bin/srun_portal
+      params:
+        action: login
+        ac_id: "{ac_id}"
+        n: "{n}"
+        type: "{type}"
+        ip: "{ip}"
+        double_stack: "1"
+        username: "{username}"
+        password: "{password_hmd5}"
+        info: "{info}"
+        chksum: "{chksum}"
+        callback: callback
+      offcampus_if_failed: true
+      script: |
+        var data = JSON.parse(resp.substring(9, resp.length - 1));
+
+        if (data.error != "ok") {
+            var matches = /E([\d]+)/.exec(data.ecode);
+
+            var n = NaN;
+            if (matches)
+                n = Number(matches[1]);
+
+            switch (n) {
+                case 2531:
+                case 2553:
+                case 2606: throw "unauthorized";
+                case 2616:
+                case 3001:
+                case 3004: throw "arrears";
+                default: throw "unknown: " + resp;
+            }
+        }
+
+  # Extra vars:
+  # - ip
+  # - id
+  logout_session:
+    - url: https://auth4.tsinghua.edu.cn/cgi-bin/srun_portal
+      params:
+        action: logout
+        ip: "{ip}"
+        username: "{username}"
+      offcampus_if_failed: true
+      script: |
+        if (resp != 'logout_ok' && resp != 'login_error#You are not online.') {
+          throw "unknown: " + resp;
+        }
+
+  # Expected vars:
+  # - usage_sums
+  history:
+    - method: POST
+      url: https://usereg.tsinghua.edu.cn/do.php
+      params:
+        action: login
+        user_login_name: "{username}"
+        user_password: "{password_md5}"
+      offcampus_if_failed: true
+      script: |
+        if (resp != "ok") {
+            switch (resp) {
+                case "用户不存在":
+                case "密码错误": throw "unauthorized";
+                default: throw "unknown: " + resp;
+            }
+        }
+
+        var today = new Date();
+        vars.year = today.getFullYear();
+        vars.month = today.getMonth() + 1;
+        vars.days = today.getDate();
+
+    - url: https://usereg.tsinghua.edu.cn/user_detail_list.php
+      params:
+        action: query
+        start_time: "{year}-{month}-1"
+        end_time: "{year}-{month}-{days}"
+        offset: "100000"
+        order: user_login_time
+      vars:
+        start_times[]: //tr[position()>=2]/td[3]
+        usages[]: //tr[position()>=2]/td[6]
+      script: |
+        vars.usage_sums = [];
+        var day_now = 1;
+        var sum_now = 0;
+
+        for (var i = 0; i < vars.start_times.length; i++) {
+            var start_time = new Date(vars.start_times[i].replace(' ', 'T'));  // As UTC for convenience.
+            if (start_time.getUTCFullYear() != vars.year || start_time.getUTCMonth() + 1 != vars.month) {
+                continue
+            }
+
+            var usage = vars.usages[i];
+            var num = Number(usage.substr(0, usage.length - 1));
+            var unit = usage[usage.length - 1].toUpperCase();
+
+            var ratio = 1;
+            switch (unit) {
+                case 'K': ratio = 1e3; break;  // TODO: Confirm.
+                case 'M': ratio = 1e6; break;
+                case 'G': ratio = 1e9; break;
+            }
+            usage = Math.round(num * ratio);
+
+            for (var day = start_time.getUTCDate(); day_now < day; day_now++) {
+                vars.usage_sums.push(sum_now);
+            }
+            sum_now += usage;
+        }
+        for (; day_now <= vars.days; day_now++) {
+            vars.usage_sums.push(sum_now);
+        }
+
+  logout:
+    - url: https://auth4.tsinghua.edu.cn/cgi-bin/srun_portal
+      params:
+        action: logout
+        ip: ""
+        username: "{username}"
+      offcampus_if_failed: true
+      script: |
+        if (resp != 'logout_ok' && resp != 'login_error#You are not online.') {
+          throw "unknown: " + resp;
+        }
