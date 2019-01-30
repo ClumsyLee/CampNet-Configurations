@@ -211,6 +211,10 @@ actions:
         if (resp != "下线请求已发送")
             throw "unknown: " + resp;
 
+  # Extra vars:
+  # - year
+  # - month
+  # - day
   # Expected vars:
   # - usage_sums
   history:
@@ -231,16 +235,11 @@ actions:
             }
         }
 
-        var today = new Date();
-        vars.year = today.getFullYear();
-        vars.month = today.getMonth() + 1;
-        vars.days = today.getDate();
-
     - url: https://usereg.tsinghua.edu.cn/user_detail_list.php
       params:
         action: query
         start_time: "{year}-{month}-1"
-        end_time: "{year}-{month}-{days}"
+        end_time: "{year}-{month}-{day}"
         offset: "100000"
         order: user_login_time
       vars:
@@ -274,7 +273,7 @@ actions:
             }
             sum_now += usage;
         }
-        for (; day_now <= vars.days; day_now++) {
+        for (; day_now <= vars.day; day_now++) {
             vars.usage_sums.push(sum_now);
         }
 
