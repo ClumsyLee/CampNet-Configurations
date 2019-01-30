@@ -20,21 +20,22 @@ actions:
       offcampus_if_failed: true
       script: |
         if (resp != "Login is successful." && resp != "IP has been online, please logout.") {
-            var matches = /E([\d]+)/.exec(resp);
+          var matches = /E([\d]+)/.exec(resp);
 
-            var n = NaN;
-            if (matches)
-                n = Number(matches[1]);
+          var n = NaN;
+          if (matches) {
+            n = Number(matches[1]);
+          }
 
-            switch (n) {
-                case 2531:
-                case 2553:
-                case 2606: throw "unauthorized";
-                case 2616:
-                case 3001:
-                case 3004: throw "arrears";
-                default: throw "unknown: " + resp;
-            }
+          switch (n) {
+            case 2531:
+            case 2553:
+            case 2606: throw "unauthorized";
+            case 2616:
+            case 3001:
+            case 3004: throw "arrears";
+            default: throw "unknown: " + resp;
+          }
         }
 
   # Expected vars:
@@ -47,14 +48,14 @@ actions:
       offcampus_if_failed: true
       script: |
         if (!resp) {
-            vars.status = "offline"
+          vars.status = "offline";
         } else {
-            var info = resp.split(",");
+          var info = resp.split(",");
 
-            vars.status = "online"
-            vars.online_username = info[0];
-            vars.start_time = new Date(Number(info[1]) * 1000);
-            vars.usage = Number(info[3]);
+          vars.status = "online";
+          vars.online_username = info[0];
+          vars.start_time = new Date(Number(info[1]) * 1000);
+          vars.usage = Number(info[3]);
         }
 
   # Expected vars:
@@ -82,11 +83,11 @@ actions:
       offcampus_if_failed: true
       script: |
         if (resp != "ok") {
-            switch (resp) {
-                case "用户不存在":
-                case "密码错误": throw "unauthorized";
-                default: throw "unknown: " + resp;
-            }
+          switch (resp) {
+            case "用户不存在":
+            case "密码错误": throw "unauthorized";
+            default: throw "unknown: " + resp;
+          }
         }
 
     - url: https://usereg.tsinghua.edu.cn/user_info.php
@@ -112,27 +113,26 @@ actions:
         vars.sessions = [];
 
         for (var i = 0; i < vars.ips.length; i++) {
+          var usage = vars.usages[i];
+          var num = Number(usage.substr(0, usage.length - 1));
+          var unit = usage[usage.length - 1].toUpperCase();
 
-            var usage = vars.usages[i];
-            var num = Number(usage.substr(0, usage.length - 1));
-            var unit = usage[usage.length - 1].toUpperCase();
+          var ratio = 1;
+          switch (unit) {
+            case 'K': ratio = 1e3; break;
+            case 'M': ratio = 1e6; break;
+            case 'G': ratio = 1e9; break;
+          }
+          usage = Math.round(num * ratio);
 
-            var ratio = 1;
-            switch (unit) {
-                case 'K': ratio = 1e3; break;  // TODO: Confirm.
-                case 'M': ratio = 1e6; break;
-                case 'G': ratio = 1e9; break;
-            }
-            usage = Math.round(num * ratio);
-
-            vars.sessions.push({
-                ip: vars.ips[i],
-                id: vars.ids[i],
-                start_time: new Date(vars.start_times[i].replace(' ', 'T') + '+08:00'),
-                usage: usage,
-                mac: vars.macs[i],
-                device: vars.devices[i]
-            });
+          vars.sessions.push({
+            ip: vars.ips[i],
+            id: vars.ids[i],
+            start_time: new Date(vars.start_times[i].replace(' ', 'T') + '+08:00'),
+            usage: usage,
+            mac: vars.macs[i],
+            device: vars.devices[i]
+          });
         }
 
   # Extra vars:
@@ -148,11 +148,11 @@ actions:
       offcampus_if_failed: true
       script: |
         if (resp != "ok") {
-            switch (resp) {
-                case "用户不存在":
-                case "密码错误": throw "unauthorized";
-                default: throw "unknown: " + resp;
-            }
+          switch (resp) {
+            case "用户不存在":
+            case "密码错误": throw "unauthorized";
+            default: throw "unknown: " + resp;
+          }
         }
 
     - method: POST
@@ -165,8 +165,9 @@ actions:
         user_ip: "{ip}"
         drop: "0"
       script: |
-        if (!resp.includes("上线请求已发送"))
-            throw "unknown: " + resp;
+        if (!resp.includes("上线请求已发送")) {
+          throw "unknown: " + resp;
+        }
 
   # Extra vars:
   # - ip
@@ -182,11 +183,11 @@ actions:
       offcampus_if_failed: true
       script: |
         if (resp != "ok") {
-            switch (resp) {
-                case "用户不存在":
-                case "密码错误": throw "unauthorized";
-                default: throw "unknown: " + resp;
-            }
+          switch (resp) {
+            case "用户不存在":
+            case "密码错误": throw "unauthorized";
+            default: throw "unknown: " + resp;
+          }
         }
 
     - method: POST
@@ -195,8 +196,9 @@ actions:
         action: drops
         user_ip: "{id},"
       script: |
-        if (resp != "下线请求已发送")
-            throw "unknown: " + resp;
+        if (resp != "下线请求已发送") {
+          throw "unknown: " + resp;
+        }
 
   # Extra vars:
   # - year
@@ -215,11 +217,11 @@ actions:
       offcampus_if_failed: true
       script: |
         if (resp != "ok") {
-            switch (resp) {
-                case "用户不存在":
-                case "密码错误": throw "unauthorized";
-                default: throw "unknown: " + resp;
-            }
+          switch (resp) {
+            case "用户不存在":
+            case "密码错误": throw "unauthorized";
+            default: throw "unknown: " + resp;
+          }
         }
 
     - url: https://usereg.tsinghua.edu.cn/user_detail_list.php
@@ -238,30 +240,30 @@ actions:
         var sum_now = 0;
 
         for (var i = 0; i < vars.start_times.length; i++) {
-            var start_time = new Date(vars.start_times[i].replace(' ', 'T'));  // As UTC for convenience.
-            if (start_time.getUTCFullYear() != vars.year || start_time.getUTCMonth() + 1 != vars.month) {
-                continue
-            }
+          var start_time = new Date(vars.start_times[i].replace(' ', 'T'));  // As UTC for convenience.
+          if (start_time.getUTCFullYear() != vars.year || start_time.getUTCMonth() + 1 != vars.month) {
+            continue;
+          }
 
-            var usage = vars.usages[i];
-            var num = Number(usage.substr(0, usage.length - 1));
-            var unit = usage[usage.length - 1].toUpperCase();
+          var usage = vars.usages[i];
+          var num = Number(usage.substr(0, usage.length - 1));
+          var unit = usage[usage.length - 1].toUpperCase();
 
-            var ratio = 1;
-            switch (unit) {
-                case 'K': ratio = 1e3; break;  // TODO: Confirm.
-                case 'M': ratio = 1e6; break;
-                case 'G': ratio = 1e9; break;
-            }
-            usage = Math.round(num * ratio);
+          var ratio = 1;
+          switch (unit) {
+            case 'K': ratio = 1e3; break;
+            case 'M': ratio = 1e6; break;
+            case 'G': ratio = 1e9; break;
+          }
+          usage = Math.round(num * ratio);
 
-            for (var day = start_time.getUTCDate(); day_now < day; day_now++) {
-                vars.usage_sums.push(sum_now);
-            }
-            sum_now += usage;
+          for (var day = start_time.getUTCDate(); day_now < day; day_now++) {
+            vars.usage_sums.push(sum_now);
+          }
+          sum_now += usage;
         }
         for (; day_now <= vars.day; day_now++) {
-            vars.usage_sums.push(sum_now);
+          vars.usage_sums.push(sum_now);
         }
 
   logout:
@@ -271,5 +273,6 @@ actions:
         action: logout
       offcampus_if_failed: true
       script: |
-        if (resp != "Logout is successful." && resp != "You are not online.")  // TODO: Confirm.
-            throw "unknown: " + resp;
+        if (resp != "Logout is successful." && resp != "You are not online.") {
+          throw "unknown: " + resp;
+        }

@@ -17,8 +17,9 @@ actions:
       offcampus_if_failed: true
       script: |
         var data = JSON.parse(resp.substring(9, resp.length - 1));
-        if (data.res != "ok")
+        if (data.res != "ok") {
           throw "unknown: " + data.error;
+        }
 
         var keyStr = "LVoJPiCN2R8G90yg" +
                      "+hmFHuacZ1OWMnrs" +
@@ -26,37 +27,37 @@ actions:
                      "v6xztjI7DeBE45QA" +
                      "=";
         function encode64(input) {
-           var output = "";
-           var chr1, chr2, chr3 = "";
-           var enc1, enc2, enc3, enc4 = "";
-           var i = 0;
+          var output = "";
+          var chr1, chr2, chr3 = "";
+          var enc1, enc2, enc3, enc4 = "";
+          var i = 0;
 
-           do {
-              chr1 = input.charCodeAt(i++);
-              chr2 = input.charCodeAt(i++);
-              chr3 = input.charCodeAt(i++);
+          do {
+            chr1 = input.charCodeAt(i++);
+            chr2 = input.charCodeAt(i++);
+            chr3 = input.charCodeAt(i++);
 
-              enc1 = chr1 >> 2;
-              enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
-              enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
-              enc4 = chr3 & 63;
+            enc1 = chr1 >> 2;
+            enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+            enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+            enc4 = chr3 & 63;
 
-              if (isNaN(chr2)) {
-                 enc3 = enc4 = 64;
-              } else if (isNaN(chr3)) {
-                 enc4 = 64;
-              }
+            if (isNaN(chr2)) {
+               enc3 = enc4 = 64;
+            } else if (isNaN(chr3)) {
+               enc4 = 64;
+            }
 
-              output = output +
-                 keyStr.charAt(enc1) +
-                 keyStr.charAt(enc2) +
-                 keyStr.charAt(enc3) +
-                 keyStr.charAt(enc4);
-              chr1 = chr2 = chr3 = "";
-              enc1 = enc2 = enc3 = enc4 = "";
-           } while (i < input.length);
+            output = output +
+               keyStr.charAt(enc1) +
+               keyStr.charAt(enc2) +
+               keyStr.charAt(enc3) +
+               keyStr.charAt(enc4);
+            chr1 = chr2 = chr3 = "";
+            enc1 = enc2 = enc3 = enc4 = "";
+          } while (i < input.length);
 
-           return output;
+          return output;
         }
 
         function xEncode(str, key) {
@@ -156,21 +157,22 @@ actions:
         var data = JSON.parse(resp.substring(9, resp.length - 1));
 
         if (data.error != 'ok' && data.error != 'ip_already_online_error') {
-            var matches = /E([\d]+)/.exec(data.ecode);
+          var matches = /E([\d]+)/.exec(data.ecode);
 
-            var n = NaN;
-            if (matches)
-                n = Number(matches[1]);
+          var n = NaN;
+          if (matches) {
+            n = Number(matches[1]);
+          }
 
-            switch (n) {
-                case 2531:
-                case 2553:
-                case 2606: throw "unauthorized";
-                case 2616:
-                case 3001:
-                case 3004: throw "arrears";
-                default: throw "unknown: " + resp;
-            }
+          switch (n) {
+            case 2531:
+            case 2553:
+            case 2606: throw "unauthorized";
+            case 2616:
+            case 3001:
+            case 3004: throw "arrears";
+            default: throw "unknown: " + resp;
+          }
         }
 
   # Expected vars:
@@ -183,14 +185,14 @@ actions:
       offcampus_if_failed: true
       script: |
         if (!resp) {
-            vars.status = "offline"
+          vars.status = "offline";
         } else {
-            var info = resp.split(",");
+          var info = resp.split(",");
 
-            vars.status = "online"
-            vars.online_username = info[0];
-            vars.start_time = new Date(Number(info[1]) * 1000);
-            vars.usage = Number(info[3]);
+          vars.status = "online";
+          vars.online_username = info[0];
+          vars.start_time = new Date(Number(info[1]) * 1000);
+          vars.usage = Number(info[3]);
         }
 
   # Expected vars:
@@ -218,11 +220,11 @@ actions:
       offcampus_if_failed: true
       script: |
         if (resp != "ok") {
-            switch (resp) {
-                case "用户不存在":
-                case "密码错误": throw "unauthorized";
-                default: throw "unknown: " + resp;
-            }
+          switch (resp) {
+            case "用户不存在":
+            case "密码错误": throw "unauthorized";
+            default: throw "unknown: " + resp;
+          }
         }
 
     - url: https://usereg.tsinghua.edu.cn/user_info.php
@@ -248,27 +250,26 @@ actions:
         vars.sessions = [];
 
         for (var i = 0; i < vars.ips.length; i++) {
+          var usage = vars.usages[i];
+          var num = Number(usage.substr(0, usage.length - 1));
+          var unit = usage[usage.length - 1].toUpperCase();
 
-            var usage = vars.usages[i];
-            var num = Number(usage.substr(0, usage.length - 1));
-            var unit = usage[usage.length - 1].toUpperCase();
+          var ratio = 1;
+          switch (unit) {
+            case 'K': ratio = 1e3; break;
+            case 'M': ratio = 1e6; break;
+            case 'G': ratio = 1e9; break;
+          }
+          usage = Math.round(num * ratio);
 
-            var ratio = 1;
-            switch (unit) {
-                case 'K': ratio = 1e3; break;  // TODO: Confirm.
-                case 'M': ratio = 1e6; break;
-                case 'G': ratio = 1e9; break;
-            }
-            usage = Math.round(num * ratio);
-
-            vars.sessions.push({
-                ip: vars.ips[i],
-                id: vars.ids[i],
-                start_time: new Date(vars.start_times[i].replace(' ', 'T') + '+08:00'),
-                usage: usage,
-                mac: vars.macs[i],
-                device: vars.devices[i]
-            });
+          vars.sessions.push({
+            ip: vars.ips[i],
+            id: vars.ids[i],
+            start_time: new Date(vars.start_times[i].replace(' ', 'T') + '+08:00'),
+            usage: usage,
+            mac: vars.macs[i],
+            device: vars.devices[i]
+          });
         }
 
   # Extra vars:
@@ -292,37 +293,37 @@ actions:
                      "v6xztjI7DeBE45QA" +
                      "=";
         function encode64(input) {
-           var output = "";
-           var chr1, chr2, chr3 = "";
-           var enc1, enc2, enc3, enc4 = "";
-           var i = 0;
+          var output = "";
+          var chr1, chr2, chr3 = "";
+          var enc1, enc2, enc3, enc4 = "";
+          var i = 0;
 
-           do {
-              chr1 = input.charCodeAt(i++);
-              chr2 = input.charCodeAt(i++);
-              chr3 = input.charCodeAt(i++);
+          do {
+            chr1 = input.charCodeAt(i++);
+            chr2 = input.charCodeAt(i++);
+            chr3 = input.charCodeAt(i++);
 
-              enc1 = chr1 >> 2;
-              enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
-              enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
-              enc4 = chr3 & 63;
+            enc1 = chr1 >> 2;
+            enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+            enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+            enc4 = chr3 & 63;
 
-              if (isNaN(chr2)) {
-                 enc3 = enc4 = 64;
-              } else if (isNaN(chr3)) {
-                 enc4 = 64;
-              }
+            if (isNaN(chr2)) {
+               enc3 = enc4 = 64;
+            } else if (isNaN(chr3)) {
+               enc4 = 64;
+            }
 
-              output = output +
-                 keyStr.charAt(enc1) +
-                 keyStr.charAt(enc2) +
-                 keyStr.charAt(enc3) +
-                 keyStr.charAt(enc4);
-              chr1 = chr2 = chr3 = "";
-              enc1 = enc2 = enc3 = enc4 = "";
-           } while (i < input.length);
+            output = output +
+               keyStr.charAt(enc1) +
+               keyStr.charAt(enc2) +
+               keyStr.charAt(enc3) +
+               keyStr.charAt(enc4);
+            chr1 = chr2 = chr3 = "";
+            enc1 = enc2 = enc3 = enc4 = "";
+          } while (i < input.length);
 
-           return output;
+          return output;
         }
 
         function xEncode(str, key) {
@@ -421,21 +422,21 @@ actions:
         var data = JSON.parse(resp.substring(9, resp.length - 1));
 
         if (data.error != 'ok' && data.error != 'ip_already_online_error') {
-            var matches = /E([\d]+)/.exec(data.ecode);
+          var matches = /E([\d]+)/.exec(data.ecode);
 
-            var n = NaN;
-            if (matches)
-                n = Number(matches[1]);
+          var n = NaN;
+          if (matches)
+            n = Number(matches[1]);
 
-            switch (n) {
-                case 2531:
-                case 2553:
-                case 2606: throw "unauthorized";
-                case 2616:
-                case 3001:
-                case 3004: throw "arrears";
-                default: throw "unknown: " + resp;
-            }
+          switch (n) {
+            case 2531:
+            case 2553:
+            case 2606: throw "unauthorized";
+            case 2616:
+            case 3001:
+            case 3004: throw "arrears";
+            default: throw "unknown: " + resp;
+          }
         }
 
   # Extra vars:
@@ -470,11 +471,11 @@ actions:
       offcampus_if_failed: true
       script: |
         if (resp != "ok") {
-            switch (resp) {
-                case "用户不存在":
-                case "密码错误": throw "unauthorized";
-                default: throw "unknown: " + resp;
-            }
+          switch (resp) {
+            case "用户不存在":
+            case "密码错误": throw "unauthorized";
+            default: throw "unknown: " + resp;
+          }
         }
 
     - url: https://usereg.tsinghua.edu.cn/user_detail_list.php
@@ -493,30 +494,30 @@ actions:
         var sum_now = 0;
 
         for (var i = 0; i < vars.start_times.length; i++) {
-            var start_time = new Date(vars.start_times[i].replace(' ', 'T'));  // As UTC for convenience.
-            if (start_time.getUTCFullYear() != vars.year || start_time.getUTCMonth() + 1 != vars.month) {
-                continue
-            }
+          var start_time = new Date(vars.start_times[i].replace(' ', 'T'));  // As UTC for convenience.
+          if (start_time.getUTCFullYear() != vars.year || start_time.getUTCMonth() + 1 != vars.month) {
+            continue;
+          }
 
-            var usage = vars.usages[i];
-            var num = Number(usage.substr(0, usage.length - 1));
-            var unit = usage[usage.length - 1].toUpperCase();
+          var usage = vars.usages[i];
+          var num = Number(usage.substr(0, usage.length - 1));
+          var unit = usage[usage.length - 1].toUpperCase();
 
-            var ratio = 1;
-            switch (unit) {
-                case 'K': ratio = 1e3; break;  // TODO: Confirm.
-                case 'M': ratio = 1e6; break;
-                case 'G': ratio = 1e9; break;
-            }
-            usage = Math.round(num * ratio);
+          var ratio = 1;
+          switch (unit) {
+            case 'K': ratio = 1e3; break;
+            case 'M': ratio = 1e6; break;
+            case 'G': ratio = 1e9; break;
+          }
+          usage = Math.round(num * ratio);
 
-            for (var day = start_time.getUTCDate(); day_now < day; day_now++) {
-                vars.usage_sums.push(sum_now);
-            }
-            sum_now += usage;
+          for (var day = start_time.getUTCDate(); day_now < day; day_now++) {
+            vars.usage_sums.push(sum_now);
+          }
+          sum_now += usage;
         }
         for (; day_now <= vars.day; day_now++) {
-            vars.usage_sums.push(sum_now);
+          vars.usage_sums.push(sum_now);
         }
 
   logout:
