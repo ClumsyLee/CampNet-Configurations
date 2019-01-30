@@ -245,6 +245,7 @@ actions:
         switch (vars.billing_group_name) {
             case "在校生":
             case "离校学生": vars.billing_group_name = "student"; break;
+            case "教工": vars.billing_group_name = "staff"; break;
         }
         vars.usage = Number(vars.usage.substring(0, vars.usage.indexOf("(")));
 
