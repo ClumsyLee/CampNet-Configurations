@@ -1,0 +1,207 @@
+ssids:
+  - RUC_W1
+  - RUC_W1S
+  - RUC_W1S_5G
+  - RUC_W2
+  - RUC_W2_5G
+  - RUC_W3
+  - RUC_W3_5G
+
+decimal_units: true
+
+# Default vars:
+# - username
+# - password
+actions:
+  login:
+    - method: POST
+      url: https://go.ruc.edu.cn/go.ruc.edu.cn
+      params:
+        DDDDD: "{username}"
+        upass: "{password}"
+        0MKKey: "123456"
+        R6: "0"
+      offcampus_if_failed: true
+      vars:
+        title: //title
+      script: |
+        if (vars.title == '统一认证 - 中国人民大学') {
+          throw 'unauthorized';
+        }
+
+  # Expected vars:
+  # - status (online | offline | offcampus) (*)
+  # - online_username
+  # - start_time
+  # - usage
+  status:
+    - url: https://go.ruc.edu.cn/
+      offcampus_if_failed: true
+      script: |
+        var matches = /uid='(\w+)'/.exec(resp);
+        if (matches) {
+          vars.status = "online";
+          vars.online_username = matches[1];
+        } else {
+          vars.status = "offline";
+        }
+
+  # Expected vars:
+  # - name
+  # - balance
+  # - data_balance
+  # - usage
+  # - free_usage
+  # - max_usage
+  # - sessions
+  #   - ip (*)
+  #   - id
+  #   - start_time
+  #   - usage
+  #   - mac
+  #   - device
+  profile:
+    - method: POST
+      url: https://go.ruc.edu.cn:801/eportal/ruc/index.php
+      params:
+        UID: "{username}"
+        password: "{password}"
+        is_lack: "0"
+      offcampus_if_failed: true
+      script: |
+        if (!resp.includes('php/RucSetting.php')) {
+          if (resp.includes('go.ruc.edu.cn:80')) {
+            throw "offline";
+          }
+          throw "unknown: " + resp;
+        }
+
+    - url: https://go.ruc.edu.cn:801/eportal/ruc/php/get_user_info.php
+      script: |
+        var data = JSON.parse(resp);
+
+        vars.name = data.data.user_name;
+        vars.balance = Number(data.data.user_balance);
+        vars.data_balance = Math.round(Number(data.data.remain_bytes) * 1e6);
+        vars.usage = Math.round(Number(data.data.use_bytes) * 1e6);
+        if (vars.data_balance > 0) {
+          vars.free_usage = vars.usage + vars.data_balance;
+        }
+        vars.max_usage = vars.usage + vars.data_balance + Math.round(Number(data.data.balance_bytes) * 1e6);
+
+    - url: https://go.ruc.edu.cn:801/eportal/ruc/php/get_user_device.php
+      script: |
+        var data = JSON.parse(resp);
+        vars.sessions = [];
+
+        for (var i = 0; i < data.data.length; i++) {
+          var session = data.data[i];
+
+          if (!session.online_ip || !session.online_session || !session.online_time) {
+            continue;
+          }
+
+          vars.sessions.push({
+            ip: session.online_ip,
+            id: session.online_session,
+            start_time: new Date(session.online_time.replace(' ', 'T') + '+08:00'),
+            mac: session.mac,
+            device: session.device_alias
+          });
+        }
+
+  # Extra vars:
+  # - ip
+  # - id
+  logout_session:
+    - method: POST
+      url: https://go.ruc.edu.cn:801/eportal/ruc/index.php
+      params:
+        UID: "{username}"
+        password: "{password}"
+        is_lack: "0"
+      offcampus_if_failed: true
+      script: |
+        if (!resp.includes('php/RucSetting.php')) {
+          if (resp.includes('go.ruc.edu.cn:80')) {
+            throw "offline";
+          }
+          throw "unknown: " + resp;
+        }
+
+    - method: POST
+      url: https://go.ruc.edu.cn:801/eportal/ruc/php/offline_device.php
+      params:
+        is_auto_login: "1"
+        device_list: "0|{id}"
+      script: |
+        if (JSON.parse(resp).result != "ok") {
+          throw "unknown: " + resp;
+        }
+
+  # Extra vars:
+  # - year
+  # - month
+  # - day
+  # Expected vars:
+  # - usage_sums
+  history:
+    - method: POST
+      url: https://go.ruc.edu.cn:801/eportal/ruc/index.php
+      params:
+        UID: "{username}"
+        password: "{password}"
+        is_lack: "0"
+      offcampus_if_failed: true
+      script: |
+        if (!resp.includes('php/RucSetting.php')) {
+          if (resp.includes('go.ruc.edu.cn:80')) {
+            throw "offline";
+          }
+          throw "unknown: " + resp;
+        }
+
+        vars.yearStr = String(vars.year).padStart(4, '0');
+        vars.monthStr = String(vars.month).padStart(2, '0');
+        vars.dayStr = String(vars.day).padStart(2, '0');
+
+    - url: https://go.ruc.edu.cn:801/eportal/ruc/php/get_consume_list.php
+      params:
+        start_time: "{yearStr}-{monthStr}-01 00:00"
+        end_time: "{yearStr}-{monthStr}-{dayStr} 23:59"
+        min_num: "1"
+        max_num: "100000"
+      script: |
+        var data = JSON.parse(resp);
+        vars.usage_sums = [];
+        var day_now = 1;
+        var sum_now = 0;
+
+        for (var i = data.data.length - 1; i >= 0; i--) {
+          var session = data.data[i];
+
+          var start_time = new Date(session.online_time.replace(' ', 'T'));  // As UTC for convenience.
+          if (start_time.getUTCFullYear() != vars.year || start_time.getUTCMonth() + 1 != vars.month) {
+            continue;
+          }
+
+          var usage = Math.round(session.user_in_bytes * 1e6);
+
+          for (var day = start_time.getUTCDate(); day_now < day; day_now++) {
+            vars.usage_sums.push(sum_now);
+          }
+          sum_now += usage;
+        }
+        for (; day_now <= vars.day; day_now++) {
+          vars.usage_sums.push(sum_now);
+        }
+
+  logout:
+    - method: POST
+      url: https://go.ruc.edu.cn/go.ruc.edu.cn
+      params:
+        DDDDD: "{username}"
+        upass: ""
+        0MKKey: "123456"
+        R6: "0"
+      offcampus_if_failed: true
