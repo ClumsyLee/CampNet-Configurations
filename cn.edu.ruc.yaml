@@ -26,7 +26,24 @@ actions:
         title: //title
       script: |
         if (vars.title == '统一认证 - 中国人民大学') {
-          throw 'unauthorized';
+          var matches = /Msg=([\d]+)/.exec(resp);
+          var n = NaN;
+          if (matches) {
+            n = Number(matches[1]);
+          }
+
+          switch (n) {
+            case 0:
+            case 1: throw 'unauthorized';
+            case 2: throw 'unknown: 该账号正在使用中，如有疑问请联系 ITS！';
+            case 3:
+            case 11: throw 'unknown: 本账号只能在指定地址使用！';
+            case 4: throw 'arrears';
+            case 5: throw 'unknown: 本账号已失效，请激活后继续使用！';
+            case 7: throw 'unknown: 登录错误，如有疑问请联系 ITS！';
+            case 15: break;  // 登录成功
+            default: throw 'unknown: ' + resp;
+          }
         }
 
   # Expected vars:
@@ -38,10 +55,10 @@ actions:
       script: |
         var matches = /uid='(\w+)'/.exec(resp);
         if (matches) {
-          vars.status = "online";
+          vars.status = 'online';
           vars.online_username = matches[1];
         } else {
-          vars.status = "offline";
+          vars.status = 'offline';
         }
 
   # Expected vars:
@@ -69,9 +86,9 @@ actions:
       script: |
         if (!resp.includes('php/RucSetting.php')) {
           if (resp.includes('go.ruc.edu.cn:80')) {
-            throw "offline";
+            throw 'offline';
           }
-          throw "unknown: " + resp;
+          throw 'unknown: ' + resp;
         }
 
     - url: https://go.ruc.edu.cn:801/eportal/ruc/php/get_user_info.php
@@ -122,9 +139,9 @@ actions:
       script: |
         if (!resp.includes('php/RucSetting.php')) {
           if (resp.includes('go.ruc.edu.cn:80')) {
-            throw "offline";
+            throw 'offline';
           }
-          throw "unknown: " + resp;
+          throw 'unknown: ' + resp;
         }
 
     - method: POST
@@ -133,8 +150,8 @@ actions:
         is_auto_login: "1"
         device_list: "0|{id}"
       script: |
-        if (JSON.parse(resp).result != "ok") {
-          throw "unknown: " + resp;
+        if (JSON.parse(resp).result != 'ok') {
+          throw 'unknown: ' + resp;
         }
 
   # Extra vars:
@@ -154,9 +171,9 @@ actions:
       script: |
         if (!resp.includes('php/RucSetting.php')) {
           if (resp.includes('go.ruc.edu.cn:80')) {
-            throw "offline";
+            throw 'offline';
           }
-          throw "unknown: " + resp;
+          throw 'unknown: ' + resp;
         }
 
         vars.yearStr = String(vars.year).padStart(4, '0');
