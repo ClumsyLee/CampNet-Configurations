@@ -4,17 +4,6 @@ ssids:
 
 decimal_units: true
 
-# https://usereg.tsinghua.edu.cn/help.htm
-billing_groups:
-  student:
-    base_fee: 0
-    steps:
-      - [25000, 0.002]
-  staff:
-    base_fee: 12
-    steps:
-      - [25000, 0.002]
-
 # Default vars:
 # - username
 # - password
@@ -70,9 +59,11 @@ actions:
 
   # Expected vars:
   # - name
-  # - billing_group_name
   # - balance
+  # - data_balance
   # - usage
+  # - free_usage
+  # - max_usage
   # - sessions
   #   - ip (*)
   #   - id
@@ -101,17 +92,13 @@ actions:
     - url: https://usereg.tsinghua.edu.cn/user_info.php
       vars:
         balance: (//td[@class="maintd"])[34]
-        billing_group_name: (//td[@class="maintd"])[4]
         name: (//td[@class="maintd"])[6]
         usage: (//td[@class="maintd"])[26]
       script: |
         vars.balance = Number(vars.balance.substring(0, vars.balance.indexOf("元")));
-        switch (vars.billing_group_name) {
-            case "在校生":
-            case "离校学生": vars.billing_group_name = "student"; break;
-            case "教工": vars.billing_group_name = "staff"; break;
-        }
         vars.usage = Number(vars.usage.substring(0, vars.usage.indexOf("(")));
+        vars.free_usage = 25e9;
+        vars.max_usage = Math.max(vars.usage, vars.free_usage) + Math.round(vars.balance * 0.5e9);
 
     - url: https://usereg.tsinghua.edu.cn/online_user_ipv4.php
       vars:
