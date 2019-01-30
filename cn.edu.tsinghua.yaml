@@ -41,8 +41,6 @@ actions:
   # Expected vars:
   # - status (online | offline | offcampus) (*)
   # - online_username
-  # - start_time
-  # - usage
   status:
     - url: https://net.tsinghua.edu.cn/rad_user_info.php
       offcampus_if_failed: true
@@ -54,8 +52,6 @@ actions:
 
           vars.status = "online";
           vars.online_username = info[0];
-          vars.start_time = new Date(Number(info[1]) * 1000);
-          vars.usage = Number(info[3]);
         }
 
   # Expected vars:

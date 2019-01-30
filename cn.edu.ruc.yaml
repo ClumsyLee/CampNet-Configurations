@@ -32,8 +32,6 @@ actions:
   # Expected vars:
   # - status (online | offline | offcampus) (*)
   # - online_username
-  # - start_time
-  # - usage
   status:
     - url: https://go.ruc.edu.cn/
       offcampus_if_failed: true
