@@ -20,7 +20,7 @@ actions:
       offcampus_if_failed: true
       script: |
         if (resp != 'Login is successful.' && resp != 'IP has been online, please logout.') {
-          var matches = /E([\d]+)/.exec(resp);
+          var matches = /E(\d+)/.exec(resp);
           var n = NaN;
           if (matches) {
             n = Number(matches[1]);

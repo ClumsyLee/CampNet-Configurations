@@ -26,7 +26,7 @@ actions:
         title: //title
       script: |
         if (vars.title == '统一认证 - 中国人民大学') {
-          var matches = /Msg=([\d]+)/.exec(resp);
+          var matches = /Msg=(\d+)/.exec(resp);
           var n = NaN;
           if (matches) {
             n = Number(matches[1]);

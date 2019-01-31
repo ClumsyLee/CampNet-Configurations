@@ -8,6 +8,15 @@ decimal_units: true
 # - password
 actions:
   login:
+    - url: http://net.tsinghua.edu.cn
+      offcampus_if_failed: true
+      script: |
+        var matches = /index_(\d+)/.exec(resp);
+        if (!matches) {
+          throw 'unknown: ' + resp;
+        }
+        vars.ac_id = matches[1];
+
     - url: https://auth4.tsinghua.edu.cn/cgi-bin/get_challenge
       params:
         username: "{username}"
@@ -132,7 +141,6 @@ actions:
         var token = data.challenge;
         var hmd5 = '00000000000000000000000000000000';
 
-        vars.ac_id = '31';
         vars.n = '200';
         vars.type = '1';
         vars.ip = '';
@@ -157,7 +165,7 @@ actions:
         var data = JSON.parse(resp.substring(9, resp.length - 1));
 
         if (data.error != 'ok' && data.error != 'ip_already_online_error') {
-          var matches = /E([\d]+)/.exec(data.ecode);
+          var matches = /E(\d+)/.exec(data.ecode);
 
           var n = NaN;
           if (matches) {
@@ -271,6 +279,15 @@ actions:
   # Extra vars:
   # - ip
   login_ip:
+    - url: http://net.tsinghua.edu.cn
+      offcampus_if_failed: true
+      script: |
+        var matches = /index_(\d+)/.exec(resp);
+        if (!matches) {
+          throw 'unknown: ' + resp;
+        }
+        vars.ac_id = matches[1];
+
     - url: https://auth4.tsinghua.edu.cn/cgi-bin/get_challenge
       params:
         username: "{username}"
@@ -394,7 +411,6 @@ actions:
         var token = data.challenge;
         var hmd5 = '00000000000000000000000000000000';
 
-        vars.ac_id = '31';
         vars.n = '200';
         vars.type = '1';
         vars.info = '{SRBX1}' + encode64(xEncode(JSON.stringify({ 'username': vars.username, 'password': vars.password, 'ip': vars.ip, 'acid': vars.ac_id, 'enc_ver': 'srun_bx1' }), token));
@@ -418,7 +434,7 @@ actions:
         var data = JSON.parse(resp.substring(9, resp.length - 1));
 
         if (data.error != 'ok' && data.error != 'ip_already_online_error') {
-          var matches = /E([\d]+)/.exec(data.ecode);
+          var matches = /E(\d+)/.exec(data.ecode);
 
           var n = NaN;
           if (matches)
