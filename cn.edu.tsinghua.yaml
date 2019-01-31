@@ -19,9 +19,8 @@ actions:
         ac_id: "1"
       offcampus_if_failed: true
       script: |
-        if (resp != "Login is successful." && resp != "IP has been online, please logout.") {
+        if (resp != 'Login is successful.' && resp != 'IP has been online, please logout.') {
           var matches = /E([\d]+)/.exec(resp);
-
           var n = NaN;
           if (matches) {
             n = Number(matches[1]);
@@ -30,11 +29,11 @@ actions:
           switch (n) {
             case 2531:
             case 2553:
-            case 2606: throw "unauthorized";
+            case 2606: throw 'unauthorized';
             case 2616:
             case 3001:
-            case 3004: throw "arrears";
-            default: throw "unknown: " + resp;
+            case 3004: throw 'arrears';
+            default: throw 'unknown: ' + resp;
           }
         }
 
@@ -46,11 +45,11 @@ actions:
       offcampus_if_failed: true
       script: |
         if (!resp) {
-          vars.status = "offline";
+          vars.status = 'offline';
         } else {
-          var info = resp.split(",");
+          var info = resp.split(',');
 
-          vars.status = "online";
+          vars.status = 'online';
           vars.online_username = info[0];
         }
 
@@ -78,11 +77,11 @@ actions:
         user_password: "{password_md5}"
       offcampus_if_failed: true
       script: |
-        if (resp != "ok") {
+        if (resp != 'ok') {
           switch (resp) {
-            case "用户不存在":
-            case "密码错误": throw "unauthorized";
-            default: throw "unknown: " + resp;
+            case '用户不存在':
+            case '密码错误': throw 'unauthorized';
+            default: throw 'unknown: ' + resp;
           }
         }
 
@@ -92,8 +91,8 @@ actions:
         name: (//td[@class="maintd"])[6]
         usage: (//td[@class="maintd"])[26]
       script: |
-        vars.balance = Number(vars.balance.substring(0, vars.balance.indexOf("元")));
-        vars.usage = Number(vars.usage.substring(0, vars.usage.indexOf("(")));
+        vars.balance = Number(vars.balance.substring(0, vars.balance.indexOf('元')));
+        vars.usage = Number(vars.usage.substring(0, vars.usage.indexOf('(')));
         vars.free_usage = 25e9;
         vars.max_usage = Math.max(vars.usage, vars.free_usage) + Math.round(vars.balance * 0.5e9);
 
@@ -143,11 +142,11 @@ actions:
         user_password: "{password_md5}"
       offcampus_if_failed: true
       script: |
-        if (resp != "ok") {
+        if (resp != 'ok') {
           switch (resp) {
-            case "用户不存在":
-            case "密码错误": throw "unauthorized";
-            default: throw "unknown: " + resp;
+            case '用户不存在':
+            case '密码错误': throw 'unauthorized';
+            default: throw 'unknown: ' + resp;
           }
         }
 
@@ -161,8 +160,8 @@ actions:
         user_ip: "{ip}"
         drop: "0"
       script: |
-        if (!resp.includes("上线请求已发送")) {
-          throw "unknown: " + resp;
+        if (!resp.includes('上线请求已发送')) {
+          throw 'unknown: ' + resp;
         }
 
   # Extra vars:
@@ -178,11 +177,11 @@ actions:
         user_password: "{password_md5}"
       offcampus_if_failed: true
       script: |
-        if (resp != "ok") {
+        if (resp != 'ok') {
           switch (resp) {
-            case "用户不存在":
-            case "密码错误": throw "unauthorized";
-            default: throw "unknown: " + resp;
+            case '用户不存在':
+            case '密码错误': throw 'unauthorized';
+            default: throw 'unknown: ' + resp;
           }
         }
 
@@ -192,8 +191,8 @@ actions:
         action: drops
         user_ip: "{id},"
       script: |
-        if (resp != "下线请求已发送") {
-          throw "unknown: " + resp;
+        if (resp != '下线请求已发送') {
+          throw 'unknown: ' + resp;
         }
 
   # Extra vars:
@@ -212,11 +211,11 @@ actions:
         user_password: "{password_md5}"
       offcampus_if_failed: true
       script: |
-        if (resp != "ok") {
+        if (resp != 'ok') {
           switch (resp) {
-            case "用户不存在":
-            case "密码错误": throw "unauthorized";
-            default: throw "unknown: " + resp;
+            case '用户不存在':
+            case '密码错误': throw 'unauthorized';
+            default: throw 'unknown: ' + resp;
           }
         }
 
@@ -269,6 +268,6 @@ actions:
         action: logout
       offcampus_if_failed: true
       script: |
-        if (resp != "Logout is successful." && resp != "You are not online.") {
-          throw "unknown: " + resp;
+        if (resp != 'Logout is successful.' && resp != 'You are not online.') {
+          throw 'unknown: ' + resp;
         }

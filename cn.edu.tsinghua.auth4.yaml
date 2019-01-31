@@ -17,19 +17,19 @@ actions:
       offcampus_if_failed: true
       script: |
         var data = JSON.parse(resp.substring(9, resp.length - 1));
-        if (data.res != "ok") {
-          throw "unknown: " + data.error;
+        if (data.res != 'ok') {
+          throw 'unknown: ' + data.error;
         }
 
-        var keyStr = "LVoJPiCN2R8G90yg" +
-                     "+hmFHuacZ1OWMnrs" +
-                     "STXkYpUq/3dlbfKw" +
-                     "v6xztjI7DeBE45QA" +
-                     "=";
+        var keyStr = 'LVoJPiCN2R8G90yg' +
+                     '+hmFHuacZ1OWMnrs' +
+                     'STXkYpUq/3dlbfKw' +
+                     'v6xztjI7DeBE45QA' +
+                     '=';
         function encode64(input) {
-          var output = "";
-          var chr1, chr2, chr3 = "";
-          var enc1, enc2, enc3, enc4 = "";
+          var output = '';
+          var chr1, chr2, chr3 = '';
+          var enc1, enc2, enc3, enc4 = '';
           var i = 0;
 
           do {
@@ -53,16 +53,16 @@ actions:
                keyStr.charAt(enc2) +
                keyStr.charAt(enc3) +
                keyStr.charAt(enc4);
-            chr1 = chr2 = chr3 = "";
-            enc1 = enc2 = enc3 = enc4 = "";
+            chr1 = chr2 = chr3 = '';
+            enc1 = enc2 = enc3 = enc4 = '';
           } while (i < input.length);
 
           return output;
         }
 
         function xEncode(str, key) {
-          if (str == "") {
-            return "";
+          if (str == '') {
+            return '';
           }
           var v = s(str, true),
             k = s(key, false);
@@ -130,13 +130,13 @@ actions:
         }
 
         var token = data.challenge;
-        var hmd5 = "00000000000000000000000000000000";
+        var hmd5 = '00000000000000000000000000000000';
 
-        vars.ac_id = "31";
-        vars.n = "200";
-        vars.type = "1";
-        vars.ip = "";
-        vars.info = "{SRBX1}" + encode64(xEncode(JSON.stringify({ "username": vars.username, "password": vars.password, "ip": vars.ip, "acid": vars.ac_id, "enc_ver": "srun_bx1" }), token));
+        vars.ac_id = '31';
+        vars.n = '200';
+        vars.type = '1';
+        vars.ip = '';
+        vars.info = '{SRBX1}' + encode64(xEncode(JSON.stringify({ 'username': vars.username, 'password': vars.password, 'ip': vars.ip, 'acid': vars.ac_id, 'enc_ver': 'srun_bx1' }), token));
         vars.password_hmd5 = '{MD5}' + hmd5;
         vars.chksum = sha1(token + [vars.username, hmd5, vars.ac_id, vars.ip, vars.n, vars.type, vars.info].join(token));
     - url: https://auth4.tsinghua.edu.cn/cgi-bin/srun_portal
@@ -167,11 +167,11 @@ actions:
           switch (n) {
             case 2531:
             case 2553:
-            case 2606: throw "unauthorized";
+            case 2606: throw 'unauthorized';
             case 2616:
             case 3001:
-            case 3004: throw "arrears";
-            default: throw "unknown: " + resp;
+            case 3004: throw 'arrears';
+            default: throw 'unknown: ' + resp;
           }
         }
 
@@ -183,11 +183,11 @@ actions:
       offcampus_if_failed: true
       script: |
         if (!resp) {
-          vars.status = "offline";
+          vars.status = 'offline';
         } else {
-          var info = resp.split(",");
+          var info = resp.split(',');
 
-          vars.status = "online";
+          vars.status = 'online';
           vars.online_username = info[0];
         }
 
@@ -215,11 +215,11 @@ actions:
         user_password: "{password_md5}"
       offcampus_if_failed: true
       script: |
-        if (resp != "ok") {
+        if (resp != 'ok') {
           switch (resp) {
-            case "用户不存在":
-            case "密码错误": throw "unauthorized";
-            default: throw "unknown: " + resp;
+            case '用户不存在':
+            case '密码错误': throw 'unauthorized';
+            default: throw 'unknown: ' + resp;
           }
         }
 
@@ -229,8 +229,8 @@ actions:
         name: (//td[@class="maintd"])[6]
         usage: (//td[@class="maintd"])[26]
       script: |
-        vars.balance = Number(vars.balance.substring(0, vars.balance.indexOf("元")));
-        vars.usage = Number(vars.usage.substring(0, vars.usage.indexOf("(")));
+        vars.balance = Number(vars.balance.substring(0, vars.balance.indexOf('元')));
+        vars.usage = Number(vars.usage.substring(0, vars.usage.indexOf('(')));
         vars.free_usage = 25e9;
         vars.max_usage = Math.max(vars.usage, vars.free_usage) + Math.round(vars.balance * 0.5e9);
 
@@ -280,18 +280,18 @@ actions:
       offcampus_if_failed: true
       script: |
         var data = JSON.parse(resp.substring(9, resp.length - 1));
-        if (data.res != "ok")
-          throw "unknown: " + data.error;
+        if (data.res != 'ok')
+          throw 'unknown: ' + data.error;
 
-        var keyStr = "LVoJPiCN2R8G90yg" +
-                     "+hmFHuacZ1OWMnrs" +
-                     "STXkYpUq/3dlbfKw" +
-                     "v6xztjI7DeBE45QA" +
-                     "=";
+        var keyStr = 'LVoJPiCN2R8G90yg' +
+                     '+hmFHuacZ1OWMnrs' +
+                     'STXkYpUq/3dlbfKw' +
+                     'v6xztjI7DeBE45QA' +
+                     '=';
         function encode64(input) {
-          var output = "";
-          var chr1, chr2, chr3 = "";
-          var enc1, enc2, enc3, enc4 = "";
+          var output = '';
+          var chr1, chr2, chr3 = '';
+          var enc1, enc2, enc3, enc4 = '';
           var i = 0;
 
           do {
@@ -315,16 +315,16 @@ actions:
                keyStr.charAt(enc2) +
                keyStr.charAt(enc3) +
                keyStr.charAt(enc4);
-            chr1 = chr2 = chr3 = "";
-            enc1 = enc2 = enc3 = enc4 = "";
+            chr1 = chr2 = chr3 = '';
+            enc1 = enc2 = enc3 = enc4 = '';
           } while (i < input.length);
 
           return output;
         }
 
         function xEncode(str, key) {
-          if (str == "") {
-            return "";
+          if (str == '') {
+            return '';
           }
           var v = s(str, true),
             k = s(key, false);
@@ -392,12 +392,12 @@ actions:
         }
 
         var token = data.challenge;
-        var hmd5 = "00000000000000000000000000000000";
+        var hmd5 = '00000000000000000000000000000000';
 
-        vars.ac_id = "31";
-        vars.n = "200";
-        vars.type = "1";
-        vars.info = "{SRBX1}" + encode64(xEncode(JSON.stringify({ "username": vars.username, "password": vars.password, "ip": vars.ip, "acid": vars.ac_id, "enc_ver": "srun_bx1" }), token));
+        vars.ac_id = '31';
+        vars.n = '200';
+        vars.type = '1';
+        vars.info = '{SRBX1}' + encode64(xEncode(JSON.stringify({ 'username': vars.username, 'password': vars.password, 'ip': vars.ip, 'acid': vars.ac_id, 'enc_ver': 'srun_bx1' }), token));
         vars.password_hmd5 = '{MD5}' + hmd5;
         vars.chksum = sha1(token + [vars.username, hmd5, vars.ac_id, vars.ip, vars.n, vars.type, vars.info].join(token));
     - url: https://auth4.tsinghua.edu.cn/cgi-bin/srun_portal
@@ -427,11 +427,11 @@ actions:
           switch (n) {
             case 2531:
             case 2553:
-            case 2606: throw "unauthorized";
+            case 2606: throw 'unauthorized';
             case 2616:
             case 3001:
-            case 3004: throw "arrears";
-            default: throw "unknown: " + resp;
+            case 3004: throw 'arrears';
+            default: throw 'unknown: ' + resp;
           }
         }
 
@@ -447,7 +447,7 @@ actions:
       offcampus_if_failed: true
       script: |
         if (resp != 'logout_ok' && resp != 'login_error#You are not online.') {
-          throw "unknown: " + resp;
+          throw 'unknown: ' + resp;
         }
 
   # Extra vars:
@@ -466,11 +466,11 @@ actions:
         user_password: "{password_md5}"
       offcampus_if_failed: true
       script: |
-        if (resp != "ok") {
+        if (resp != 'ok') {
           switch (resp) {
-            case "用户不存在":
-            case "密码错误": throw "unauthorized";
-            default: throw "unknown: " + resp;
+            case '用户不存在':
+            case '密码错误': throw 'unauthorized';
+            default: throw 'unknown: ' + resp;
           }
         }
 
@@ -525,5 +525,5 @@ actions:
       offcampus_if_failed: true
       script: |
         if (resp != 'logout_ok' && resp != 'login_error#You are not online.') {
-          throw "unknown: " + resp;
+          throw 'unknown: ' + resp;
         }
