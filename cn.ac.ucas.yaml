@@ -1,5 +1,5 @@
 ssids:
-  -UCAS
+  - UCAS
 
 # Default vars:
 # - username
@@ -19,7 +19,6 @@ actions:
         password: "{password}"
         queryString: "{query}"
         passwordEncrypt: "false"
-      offcampus_if_failed: true
       script: |
         var data = JSON.parse(resp);
 

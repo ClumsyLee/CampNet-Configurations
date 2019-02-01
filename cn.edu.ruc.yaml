@@ -26,15 +26,26 @@ actions:
         title: //title
       script: |
         if (vars.title == '统一认证 - 中国人民大学') {
-          var matches = /Msg=(\d+)/.exec(resp);
+          var matches = /Msg=(\d+);/.exec(resp);
           var n = NaN;
           if (matches) {
             n = Number(matches[1]);
           }
 
+          matches = /msga='(.*?)';/.exec(resp);
+          var msga = null;
+          if (matches) {
+            msga = matches[1];
+          }
+
           switch (n) {
             case 0:
-            case 1: throw 'unauthorized';
+            case 1:
+              if (!msga || msga == 'ldap auth error') {
+                throw 'unauthorized';
+              } else {
+                throw 'unknown: ' + msga;
+              }
             case 2: throw 'unknown: 该账号正在使用中，如有疑问请联系 ITS！';
             case 3:
             case 11: throw 'unknown: 本账号只能在指定地址使用！';
