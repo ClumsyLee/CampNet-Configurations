@@ -172,7 +172,7 @@ offcampus_if_failed: true
 
 ##### JavaScript: `String`
 
-The JavaScript
+The JavaScript to run after a request. Notice that to support iOS 9, only ES5 syntax should be used. The following variables can be accessed in the scripts:
 
 * `url: String`: Full URL of the (possibly redirected) request.
 * `resp: String`: Body of the HTTP response.
