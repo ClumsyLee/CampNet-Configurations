@@ -239,8 +239,8 @@ actions:
       script: |
         vars.balance = Number(vars.balance.substring(0, vars.balance.indexOf('元')));
         vars.usage = Number(vars.usage.substring(0, vars.usage.indexOf('(')));
-        vars.free_usage = 25e9;
-        vars.max_usage = Math.max(vars.usage, vars.free_usage) + Math.round(vars.balance * 0.5e9);
+        vars.free_usage = 50e9;
+        vars.max_usage = Math.max(vars.usage, vars.free_usage) + Math.round(vars.balance * 1e9);
 
     - url: https://usereg.tsinghua.edu.cn/online_user_ipv4.php
       vars:
